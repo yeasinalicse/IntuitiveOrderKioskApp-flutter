@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'menu_screen.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/constants/app_assets.dart';
+import '../../../core/constants/app_strings.dart';
+import '../../../core/theme/app_colors.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -15,8 +18,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Timer? _timer;
 
   final List<String> _images = [
-    'assets/images/slider1.jpeg',
-    'assets/images/slider2.jpeg'
+    AppAssets.slider1,
+    AppAssets.slider2,
+    AppAssets.slider3,
+    AppAssets.slider4,
   ];
 
   @override
@@ -33,11 +38,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         _currentPage = 0;
       }
 
-      _pageController.animateToPage(
-        _currentPage,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
     });
   }
 
@@ -97,7 +104,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   height: 10,
                   width: _currentPage == index ? 25 : 10,
                   decoration: BoxDecoration(
-                    color: _currentPage == index ? Colors.white : Colors.white54,
+                    color: _currentPage == index ? AppColors.white : Colors.white54,
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -105,13 +112,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           ),
           Align(
-            alignment: const Alignment(0, -0.5), // Positions it at roughly 25% from the top
+            alignment: const Alignment(0, -0.5),
             child: GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MenuScreen()),
-                );
+                context.go('/menu');
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -120,7 +124,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     width: 120,
                     height: 120,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFE64A19), // Deep orange color
+                      color: AppColors.primaryOrange,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -132,16 +136,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                     child: const Icon(
                       Icons.touch_app,
-                      color: Colors.white,
+                      color: AppColors.white,
                       size: 60,
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'touch screen\nto view menu\n& order',
+                  Text(
+                    AppStrings.welcomeTouchText,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
+                    style: const TextStyle(
+                      color: AppColors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       shadows: [
