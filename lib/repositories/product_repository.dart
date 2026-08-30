@@ -1,5 +1,5 @@
-import '../data/mock_data.dart';
-import '../models/product.dart';
+import 'package:intuitiveorderkioskappflutter/data/mock_data.dart';
+import 'package:intuitiveorderkioskappflutter/models/product.dart';
 
 class ProductRepository {
   // In a real app, this would fetch from an API or Database

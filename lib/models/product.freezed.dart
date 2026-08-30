@@ -1,6 +1,6 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
+// coverage:ignore-file
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'product.dart';
@@ -9,216 +9,286 @@ part of 'product.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
-
-Product _$ProductFromJson(Map<String, dynamic> json) {
-  return _Product.fromJson(json);
-}
 
 /// @nodoc
 mixin _$Product {
-  String get name => throw _privateConstructorUsedError;
-  String get price => throw _privateConstructorUsedError;
-  String get kcal => throw _privateConstructorUsedError;
-  String get image => throw _privateConstructorUsedError;
+
+ String get name; String get price; String get kcal; String get image;
+/// Create a copy of Product
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ProductCopyWith<Product> get copyWith => _$ProductCopyWithImpl<Product>(this as Product, _$identity);
 
   /// Serializes this Product to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson();
 
-  /// Create a copy of Product
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $ProductCopyWith<Product> get copyWith => throw _privateConstructorUsedError;
+
+@override
+bool operator ==(Object other) {
+  final _this = this as Product;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Product&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.kcal, _this.kcal) || other.kcal == _this.kcal)&&(identical(other.image, _this.image) || other.image == _this.image));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as Product;
+  return Object.hash(runtimeType,_this.name,_this.price,_this.kcal,_this.image);
+}
+
+@override
+String toString() {
+  final _this = this as Product;
+  return 'Product(name: ${_this.name}, price: ${_this.price}, kcal: ${_this.kcal}, image: ${_this.image})';
+}
+
+
 }
 
 /// @nodoc
-abstract class $ProductCopyWith<$Res> {
-  factory $ProductCopyWith(Product value, $Res Function(Product) then) =
-      _$ProductCopyWithImpl<$Res, Product>;
-  @useResult
-  $Res call({String name, String price, String kcal, String image});
-}
+abstract mixin class $ProductCopyWith<$Res>  {
+  factory $ProductCopyWith(Product value, $Res Function(Product) _then) = _$ProductCopyWithImpl;
+@useResult
+$Res call({
+ String name, String price, String kcal, String image
+});
 
+
+
+
+}
 /// @nodoc
-class _$ProductCopyWithImpl<$Res, $Val extends Product>
+class _$ProductCopyWithImpl<$Res>
     implements $ProductCopyWith<$Res> {
-  _$ProductCopyWithImpl(this._value, this._then);
+  _$ProductCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final Product _self;
+  final $Res Function(Product) _then;
 
-  /// Create a copy of Product
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? name = null,
-    Object? price = null,
-    Object? kcal = null,
-    Object? image = null,
-  }) {
-    return _then(
-      _value.copyWith(
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            price: null == price
-                ? _value.price
-                : price // ignore: cast_nullable_to_non_nullable
-                      as String,
-            kcal: null == kcal
-                ? _value.kcal
-                : kcal // ignore: cast_nullable_to_non_nullable
-                      as String,
-            image: null == image
-                ? _value.image
-                : image // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
-  }
+/// Create a copy of Product
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? price = null,Object? kcal = null,Object? image = null,}) {
+  return _then(Product(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
+as String,kcal: null == kcal ? _self.kcal : kcal // ignore: cast_nullable_to_non_nullable
+as String,image: null == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
 }
 
-/// @nodoc
-abstract class _$$ProductImplCopyWith<$Res> implements $ProductCopyWith<$Res> {
-  factory _$$ProductImplCopyWith(
-    _$ProductImpl value,
-    $Res Function(_$ProductImpl) then,
-  ) = __$$ProductImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String name, String price, String kcal, String image});
 }
 
-/// @nodoc
-class __$$ProductImplCopyWithImpl<$Res>
-    extends _$ProductCopyWithImpl<$Res, _$ProductImpl>
-    implements _$$ProductImplCopyWith<$Res> {
-  __$$ProductImplCopyWithImpl(
-    _$ProductImpl _value,
-    $Res Function(_$ProductImpl) _then,
-  ) : super(_value, _then);
 
-  /// Create a copy of Product
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? name = null,
-    Object? price = null,
-    Object? kcal = null,
-    Object? image = null,
-  }) {
-    return _then(
-      _$ProductImpl(
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        price: null == price
-            ? _value.price
-            : price // ignore: cast_nullable_to_non_nullable
-                  as String,
-        kcal: null == kcal
-            ? _value.kcal
-            : kcal // ignore: cast_nullable_to_non_nullable
-                  as String,
-        image: null == image
-            ? _value.image
-            : image // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
-  }
+/// Adds pattern-matching-related methods to [Product].
+extension ProductPatterns on Product {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Product value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _Product() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Product value)  $default,){
+final _that = this;
+switch (_that) {
+case _Product():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Product value)?  $default,){
+final _that = this;
+switch (_that) {
+case _Product() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String price,  String kcal,  String image)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _Product() when $default != null:
+return $default(_that.name,_that.price,_that.kcal,_that.image);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String price,  String kcal,  String image)  $default,) {final _that = this;
+switch (_that) {
+case _Product():
+return $default(_that.name,_that.price,_that.kcal,_that.image);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String price,  String kcal,  String image)?  $default,) {final _that = this;
+switch (_that) {
+case _Product() when $default != null:
+return $default(_that.name,_that.price,_that.kcal,_that.image);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$ProductImpl implements _Product {
-  const _$ProductImpl({
-    required this.name,
-    required this.price,
-    required this.kcal,
-    required this.image,
-  });
 
-  factory _$ProductImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ProductImplFromJson(json);
+class _Product implements Product {
+  const _Product({required this.name, required this.price, required this.kcal, required this.image});
+  factory _Product.fromJson(Map<String, dynamic> json) => _$ProductFromJson(json);
 
-  @override
-  final String name;
-  @override
-  final String price;
-  @override
-  final String kcal;
-  @override
-  final String image;
+@override final  String name;
+@override final  String price;
+@override final  String kcal;
+@override final  String image;
 
-  @override
-  String toString() {
+/// Create a copy of Product
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ProductCopyWith<_Product> get copyWith => __$ProductCopyWithImpl<_Product>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ProductToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Product&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.kcal, kcal) || other.kcal == kcal)&&(identical(other.image, image) || other.image == image));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,name,price,kcal,image);
+}
+
+@override
+String toString() {
     return 'Product(name: $name, price: $price, kcal: $kcal, image: $image)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$ProductImpl &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.price, price) || other.price == price) &&
-            (identical(other.kcal, kcal) || other.kcal == kcal) &&
-            (identical(other.image, image) || other.image == image));
-  }
-
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, name, price, kcal, image);
-
-  /// Create a copy of Product
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$ProductImplCopyWith<_$ProductImpl> get copyWith =>
-      __$$ProductImplCopyWithImpl<_$ProductImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ProductImplToJson(this);
-  }
 }
 
-abstract class _Product implements Product {
-  const factory _Product({
-    required final String name,
-    required final String price,
-    required final String kcal,
-    required final String image,
-  }) = _$ProductImpl;
 
-  factory _Product.fromJson(Map<String, dynamic> json) = _$ProductImpl.fromJson;
-
-  @override
-  String get name;
-  @override
-  String get price;
-  @override
-  String get kcal;
-  @override
-  String get image;
-
-  /// Create a copy of Product
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ProductImplCopyWith<_$ProductImpl> get copyWith =>
-      throw _privateConstructorUsedError;
 }
+
+/// @nodoc
+abstract mixin class _$ProductCopyWith<$Res> implements $ProductCopyWith<$Res> {
+  factory _$ProductCopyWith(_Product value, $Res Function(_Product) _then) = __$ProductCopyWithImpl;
+@override @useResult
+$Res call({
+ String name, String price, String kcal, String image
+});
+
+
+
+
+}
+/// @nodoc
+class __$ProductCopyWithImpl<$Res>
+    implements _$ProductCopyWith<$Res> {
+  __$ProductCopyWithImpl(this._self, this._then);
+
+  final _Product _self;
+  final $Res Function(_Product) _then;
+
+/// Create a copy of Product
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? price = null,Object? kcal = null,Object? image = null,}) {
+  return _then(_Product(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
+as String,kcal: null == kcal ? _self.kcal : kcal // ignore: cast_nullable_to_non_nullable
+as String,image: null == image ? _self.image : image // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+// dart format on

@@ -2,10 +2,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/constants/app_assets.dart';
-import '../view_models/cart_view_model.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/constants/app_strings.dart';
+import 'package:intuitiveorderkioskappflutter/core/constants/app_assets.dart';
+import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
+import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 
 class PaymentSelectionScreen extends ConsumerWidget {
   const PaymentSelectionScreen({super.key});

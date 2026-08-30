@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../features/menu/presentation/widgets/category_fragment.dart';
 import '../../features/cart/presentation/bottom_cart_bar.dart';
 import '../constants/app_strings.dart';
-import '../theme/app_colors.dart';
 
 class MainLayout extends StatelessWidget {
   final Widget child;

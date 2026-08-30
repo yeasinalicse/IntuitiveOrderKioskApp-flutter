@@ -21,12 +21,12 @@ class AppRouter {
           GoRoute(
             path: '/menu',
             builder: (context, state) => ProductFragment(
-              onProductSelected: (product, itemId) {
+              onProductSelected: (dish, itemId) {
                 context.push('/details', extra: {
                   'itemId': itemId,
-                  'productName': product.name,
-                  'productPrice': product.price,
-                  'productImage': product.image,
+                  'productName': dish.name ?? '',
+                  'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
+                  'productImage': '', // API doesn't provide images yet
                 });
               },
             ),

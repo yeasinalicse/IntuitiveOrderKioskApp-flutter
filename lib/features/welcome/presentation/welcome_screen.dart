@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/constants/app_assets.dart';
-import '../../../core/constants/app_strings.dart';
-import '../../../core/theme/app_colors.dart';
+import 'package:intuitiveorderkioskappflutter/core/constants/app_assets.dart';
+import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
+import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});

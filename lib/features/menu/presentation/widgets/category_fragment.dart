@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../view_models/category_view_model.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/category_view_model.dart';
 
 class CategoryFragment extends ConsumerWidget {
   const CategoryFragment({super.key});
@@ -38,7 +38,7 @@ class CategoryFragment extends ConsumerWidget {
                       border: Border.all(color: Colors.black12),
                     ),
                     child: Text(
-                      categoryState.categories[index],
+                      categoryState.categories[index].name ?? '',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: isSelected ? AppColors.orange : AppColors.white,

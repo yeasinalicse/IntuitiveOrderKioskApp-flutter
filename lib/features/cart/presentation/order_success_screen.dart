@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
-import '../view_models/cart_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
+import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
 
 class OrderSuccessScreen extends ConsumerStatefulWidget {
   const OrderSuccessScreen({super.key});
@@ -14,7 +14,7 @@ class OrderSuccessScreen extends ConsumerStatefulWidget {
 
 class _OrderSuccessScreenState extends ConsumerState<OrderSuccessScreen> {
   bool _isPrinting = true;
-  int _orderNumber = 100 + (DateTime.now().millisecondsSinceEpoch % 900);
+  final int _orderNumber = 100 + (DateTime.now().millisecondsSinceEpoch % 900);
 
   @override
   void initState() {

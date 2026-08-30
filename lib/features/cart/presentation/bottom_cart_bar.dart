@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
-import '../view_models/cart_view_model.dart';
-import '../../../models/order_item.dart';
-import '../../../core/constants/app_strings.dart';
+import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
+import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/order_item.dart';
+import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 
 class BottomCartBar extends ConsumerWidget {
   const BottomCartBar({super.key});

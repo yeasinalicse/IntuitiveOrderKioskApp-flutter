@@ -6,21 +6,20 @@ part of 'order_item.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$OrderItemImpl _$$OrderItemImplFromJson(Map<String, dynamic> json) =>
-    _$OrderItemImpl(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      price: json['price'] as String,
-      quantity: (json['quantity'] as num).toInt(),
-      description: json['description'] as String? ?? '',
-      customizations:
-          (json['customizations'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-    );
+_OrderItem _$OrderItemFromJson(Map<String, dynamic> json) => _OrderItem(
+  id: json['id'] as String,
+  name: json['name'] as String,
+  price: json['price'] as String,
+  quantity: (json['quantity'] as num).toInt(),
+  description: json['description'] as String? ?? '',
+  customizations:
+      (json['customizations'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+);
 
-Map<String, dynamic> _$$OrderItemImplToJson(_$OrderItemImpl instance) =>
+Map<String, dynamic> _$OrderItemToJson(_OrderItem instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
