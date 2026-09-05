@@ -1,6 +1,4 @@
-// ignore_for_file: non_constant_identifier_names
 import 'package:freezed_annotation/freezed_annotation.dart';
-
 part 'terminal_model.freezed.dart';
 part 'terminal_model.g.dart';
 

@@ -1,24 +1,29 @@
-import 'package:intuitiveorderkioskappflutter/core/constants/api_constants.dart';
-import 'package:intuitiveorderkioskappflutter/core/network/api_client.dart';
+import 'package:intuitiveorderkioskappflutter/data/datasources/restaurant_remote_datasource.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/restaurant_app_data_model.dart';
 import 'package:intuitiveorderkioskappflutter/core/utils/logger.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/save_restaurant_order_with_dish.dart';
 
 class RestaurantRepository {
-  final ApiClient _apiClient;
+  final RestaurantRemoteDataSource _remoteDataSource;
 
-  RestaurantRepository(this._apiClient);
+  RestaurantRepository(this._remoteDataSource);
 
   Future<RestaurantAppDataModel> getApplicationData() async {
     try {
-      final response = await _apiClient.post(ApiConstants.applicationData, data: {});
-      if (response.statusCode == 200) {
-        return RestaurantAppDataModel.fromJson(response.data);
-      } else {
-        throw Exception('Failed to load application data: ${response.statusCode}');
-      }
+      final data = await _remoteDataSource.getApplicationData();
+      return RestaurantAppDataModel.fromJson(data);
     } catch (e) {
       logger.e('Error in getApplicationData: $e');
       throw Exception('Error fetching application data: $e');
+    }
+  }
+
+  Future<dynamic> saveRestaurantOrderWithDish(SaveRestaurantOrderWithDishRequest request) async {
+    try {
+      return await _remoteDataSource.saveRestaurantOrderWithDish(request);
+    } catch (e) {
+      logger.e('Error in saveRestaurantOrderWithDish: $e');
+      rethrow;
     }
   }
 }

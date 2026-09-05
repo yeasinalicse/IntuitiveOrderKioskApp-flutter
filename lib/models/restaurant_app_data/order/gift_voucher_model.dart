@@ -1,6 +1,4 @@
-// ignore_for_file: non_constant_identifier_names
 import 'package:freezed_annotation/freezed_annotation.dart';
-
 part 'gift_voucher_model.freezed.dart';
 part 'gift_voucher_model.g.dart';
 

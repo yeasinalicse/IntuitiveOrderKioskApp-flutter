@@ -1,6 +1,4 @@
-// ignore_for_file: non_constant_identifier_names
 import 'package:freezed_annotation/freezed_annotation.dart';
-
 part 'tab_order_time_settings_model.freezed.dart';
 part 'tab_order_time_settings_model.g.dart';
 

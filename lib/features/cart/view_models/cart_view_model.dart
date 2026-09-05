@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../../models/order_item.dart';
-
+import 'package:intuitiveorderkioskappflutter/models/order_item.dart';
 part 'cart_view_model.freezed.dart';
 
 @freezed

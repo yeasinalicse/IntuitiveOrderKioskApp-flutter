@@ -1,20 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intuitiveorderkioskappflutter/core/constants/app_assets.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
-import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/product_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/save_order_with_dish_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 
-class ProductFragment extends ConsumerWidget {
-  final Function(DishModel, String) onProductSelected;
-  const ProductFragment({super.key, required this.onProductSelected});
+class DishFragment extends ConsumerWidget {
+  final Function(DishModel, String) onDishSelected;
+  const DishFragment({super.key, required this.onDishSelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final productList = ref.watch(productProvider);
+    final dishList = ref.watch(dishProvider);
     final theme = Theme.of(context);
 
-    if (productList.isEmpty) {
+    final demoImages = [
+      AppAssets.dish1,
+      AppAssets.dish2,
+      AppAssets.dish3,
+      AppAssets.dish4,
+      AppAssets.dish5,
+      AppAssets.dish6,
+      AppAssets.dish7,
+      AppAssets.dish8,
+    ];
+
+    // Listen to save order state for showing feedback
+    ref.listen(saveOrderProvider, (previous, next) {
+      next.whenOrNull(
+        error: (error, stack) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error saving order: $error')),
+          );
+        },
+        data: (data) {
+          if (data != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Order saved successfully!')),
+            );
+          }
+        },
+      );
+    });
+
+    if (dishList.isEmpty) {
       return const Center(child: Text('No products found in this category'));
     }
 
@@ -26,13 +56,14 @@ class ProductFragment extends ConsumerWidget {
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
-      itemCount: productList.length,
+      itemCount: dishList.length,
       itemBuilder: (context, index) {
-        final product = productList[index];
+        final dish = dishList[index];
+        final demoImage = demoImages[index % demoImages.length];
         return GestureDetector(
           onTap: () {
-            final itemId = DateTime.now().toString();
-            onProductSelected(product, itemId);
+            ref.read(saveOrderProvider.notifier).saveOrderWithDish(dish);
+            onDishSelected(dish, dish.id.toString());
           },
           child: Container(
             decoration: BoxDecoration(
@@ -52,7 +83,7 @@ class ProductFragment extends ConsumerWidget {
                       Align(
                         alignment: Alignment.topRight,
                         child: Text(
-                          '${AppStrings.currencySymbol}${product.price?.toStringAsFixed(2) ?? '0.00'}',                          style: TextStyle(
+                          '${AppStrings.currencySymbol}${dish.price?.toStringAsFixed(2) ?? '0.00'}',                          style: TextStyle(
                             color: theme.textTheme.headlineLarge?.color,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -60,46 +91,16 @@ class ProductFragment extends ConsumerWidget {
                         ),
                       ),
                       const Spacer(),
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Using a placeholder as DishModel doesn't have an image field
-                          Icon(Icons.fastfood,
-                              color: theme.textTheme.bodyMedium?.color, size: 80),
-                          Positioned(
-                            right: 0,
-                            bottom: 10,
-                            child: Container(
-                              width: 65,
-                              height: 65,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: AppColors.orange,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.white, width: 2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.black.withValues(alpha: 0.3),
-                                    blurRadius: 5,
-                                    offset: const Offset(2, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Text(
-                                'LARGE',
-                                style: TextStyle(
-                                  color: AppColors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                      Image.asset(
+                        demoImage,
+                        height: 80,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => 
+                            Icon(Icons.fastfood, color: theme.textTheme.bodyMedium?.color, size: 80),
                       ),
                       const Spacer(),
                       Text(
-                        product.name ?? '',
+                        dish.name ?? '',
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

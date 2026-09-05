@@ -1,16 +1,20 @@
 import 'package:go_router/go_router.dart';
-import '../../features/welcome/presentation/welcome_screen.dart';
-import '../../features/menu/presentation/menu_details_screen.dart';
-import '../../features/menu/presentation/widgets/product_fragment.dart';
-import '../widgets/main_layout.dart';
-
-import '../../features/cart/presentation/payment_selection_screen.dart';
-import '../../features/cart/presentation/order_success_screen.dart';
+import 'package:intuitiveorderkioskappflutter/core/widgets/main_layout.dart';
+import 'package:intuitiveorderkioskappflutter/features/cart/presentation/order_success_screen.dart';
+import 'package:intuitiveorderkioskappflutter/features/cart/presentation/payment_selection_screen.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/presentation/menu_details_screen.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/dish_fragment.dart';
+import 'package:intuitiveorderkioskappflutter/features/welcome/presentation/welcome_screen.dart';
+import 'package:intuitiveorderkioskappflutter/features/splash/presentation/splash_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
-    initialLocation: '/',
+    initialLocation: '/splash',
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/',
         builder: (context, state) => const WelcomeScreen(),
@@ -20,8 +24,8 @@ class AppRouter {
         routes: [
           GoRoute(
             path: '/menu',
-            builder: (context, state) => ProductFragment(
-              onProductSelected: (dish, itemId) {
+            builder: (context, state) => DishFragment(
+              onDishSelected: (dish, itemId) {
                 context.push('/details', extra: {
                   'itemId': itemId,
                   'productName': dish.name ?? '',

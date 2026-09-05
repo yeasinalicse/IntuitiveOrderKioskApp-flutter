@@ -1,7 +1,5 @@
-// ignore_for_file: non_constant_identifier_names
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'floor_order_model.dart';
-
 part 'floor_object_model.freezed.dart';
 part 'floor_object_model.g.dart';
 

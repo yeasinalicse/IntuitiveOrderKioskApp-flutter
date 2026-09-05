@@ -1,6 +1,4 @@
-// ignore_for_file: non_constant_identifier_names
 import 'package:freezed_annotation/freezed_annotation.dart';
-
 part 'active_order_policy_model.freezed.dart';
 part 'active_order_policy_model.g.dart';
 

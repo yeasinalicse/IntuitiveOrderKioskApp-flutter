@@ -1,7 +1,4 @@
-// ignore_for_file: non_constant_identifier_names
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../common/time_span_model.dart';
-
 part 'schedule_model.freezed.dart';
 part 'schedule_model.g.dart';
 

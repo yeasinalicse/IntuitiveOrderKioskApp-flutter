@@ -4,7 +4,7 @@ import 'package:intuitiveorderkioskappflutter/core/constants/api_constants.dart'
 import 'package:intuitiveorderkioskappflutter/core/utils/logger.dart';
 
 class ApiClient {
-  late Dio dio;
+  late final Dio dio;
 
   ApiClient() {
     dio = Dio(
@@ -12,53 +12,95 @@ class ApiClient {
         baseUrl: ApiConstants.baseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        responseType: ResponseType.json,
       ),
     );
+    _setupInterceptors();
+  }
 
-    // Add interceptors only in debug mode
-    if (kDebugMode) {
-      dio.interceptors.add(InterceptorsWrapper(
+  void _setupInterceptors() {
+    if (!kDebugMode) return;
+
+    dio.interceptors.add(
+      InterceptorsWrapper(
         onRequest: (options, handler) {
-          logger.i('REQUEST[${options.method}] => PATH: ${options.path}');
+          logger.i(
+            'REQUEST → ${options.method} ${options.uri}',
+          );
+
+          if (options.queryParameters.isNotEmpty) {
+            logger.d(
+              'QUERY → ${options.queryParameters}',
+            );
+          }
+
           if (options.data != null) {
-            logger.d('DATA: ${options.data}');
+            logger.d(
+              'DATA → ${options.data}',
+            );
           }
-          return handler.next(options);
+
+          handler.next(options);
         },
+
         onResponse: (response, handler) {
-          logger.i('RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
-          logger.d('BODY: ${response.data}');
-          return handler.next(response);
-        },
-        onError: (DioException e, handler) {
-          logger.e('ERROR[${e.response?.statusCode}] => PATH: ${e.requestOptions.path}');
-          logger.e('MESSAGE: ${e.message}');
-          if (e.response?.data != null) {
-            logger.e('ERROR DATA: ${e.response?.data}');
+          logger.i(
+            'RESPONSE → ${response.statusCode} '
+                '${response.requestOptions.uri}',
+          );
+
+          if (response.data.isNotEmpty) {
+            logger.d(
+              'RESPONSE DATA → ${response.data}',
+            );
           }
-          return handler.next(e);
+
+          handler.next(response);
         },
-      ));
-    }
+
+        onError: (error, handler) {
+          logger.e(
+            'ERROR → ${error.response?.statusCode} '
+                '${error.requestOptions.uri}',
+          );
+
+          logger.e(
+            'MESSAGE → ${error.message}',
+          );
+
+          if (error.response?.data != null) {
+            logger.e(
+              'ERROR DATA → ${error.response?.data}',
+            );
+          }
+
+          handler.next(error);
+        },
+      ),
+    );
   }
 
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) async {
-    try {
-      return await dio.get(path, queryParameters: queryParameters);
-    } catch (e) {
-      rethrow;
-    }
+  Future<Response<T>> get<T>(String path, {Map<String, dynamic>? queryParameters, Options? options, CancelToken? cancelToken}) {
+    return dio.get<T>(
+      path,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    );
   }
 
-  Future<Response> post(String path, {dynamic data, Map<String, dynamic>? queryParameters}) async {
-    try {
-      return await dio.post(path, data: data, queryParameters: queryParameters);
-    } catch (e) {
-      rethrow;
-    }
+  Future<Response<T>> post<T>(String path, {dynamic data, Map<String, dynamic>? queryParameters, Options? options, CancelToken? cancelToken}) {
+    return dio.post<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    );
   }
 }

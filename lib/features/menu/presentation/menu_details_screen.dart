@@ -5,7 +5,6 @@ import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/order_item.dart';
 
-
 class MenuDetailsScreen extends ConsumerStatefulWidget {
   final String itemId;
   final String productName;
