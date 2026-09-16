@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intuitiveorderkioskappflutter/core/widgets/main_layout.dart';
 import 'package:intuitiveorderkioskappflutter/features/cart/presentation/order_success_screen.dart';
@@ -8,7 +9,10 @@ import 'package:intuitiveorderkioskappflutter/features/welcome/presentation/welc
 import 'package:intuitiveorderkioskappflutter/features/splash/presentation/splash_screen.dart';
 
 class AppRouter {
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   static final router = GoRouter(
+    navigatorKey: navigatorKey,
     initialLocation: '/splash',
     routes: [
       GoRoute(
@@ -27,6 +31,7 @@ class AppRouter {
             builder: (context, state) => DishFragment(
               onDishSelected: (dish, itemId) {
                 context.push('/details', extra: {
+                  'dish': dish,
                   'itemId': itemId,
                   'productName': dish.name ?? '',
                   'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
@@ -40,6 +45,7 @@ class AppRouter {
             builder: (context, state) {
               final extras = state.extra as Map<String, dynamic>;
               return MenuDetailsScreen(
+                dish: extras['dish'],
                 itemId: extras['itemId'] as String,
                 productName: extras['productName'] as String,
                 productPrice: extras['productPrice'] as String,

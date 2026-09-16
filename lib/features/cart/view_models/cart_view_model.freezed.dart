@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CartState {
 
- List<OrderItem> get items;
+ List<OrderDishModel> get items;
 /// Create a copy of CartState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -51,7 +51,7 @@ abstract mixin class $CartStateCopyWith<$Res>  {
   factory $CartStateCopyWith(CartState value, $Res Function(CartState) _then) = _$CartStateCopyWithImpl;
 @useResult
 $Res call({
- List<OrderItem> items
+ List<OrderDishModel> items
 });
 
 
@@ -71,7 +71,7 @@ class _$CartStateCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? items = null,}) {
   return _then(CartState(
 items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
-as List<OrderItem>,
+as List<OrderDishModel>,
   ));
 }
 
@@ -156,7 +156,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<OrderItem> items)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<OrderDishModel> items)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CartState() when $default != null:
 return $default(_that.items);case _:
@@ -177,7 +177,7 @@ return $default(_that.items);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<OrderItem> items)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<OrderDishModel> items)  $default,) {final _that = this;
 switch (_that) {
 case _CartState():
 return $default(_that.items);case _:
@@ -197,7 +197,7 @@ return $default(_that.items);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<OrderItem> items)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<OrderDishModel> items)?  $default,) {final _that = this;
 switch (_that) {
 case _CartState() when $default != null:
 return $default(_that.items);case _:
@@ -212,11 +212,11 @@ return $default(_that.items);case _:
 
 
 class _CartState extends CartState {
-  const _CartState({ List<OrderItem> items = const []}): _items = items,super._();
+  const _CartState({ List<OrderDishModel> items = const []}): _items = items,super._();
   
 
- final  List<OrderItem> _items;
-@override@JsonKey() List<OrderItem> get items {
+ final  List<OrderDishModel> _items;
+@override@JsonKey() List<OrderDishModel> get items {
   if (_items is EqualUnmodifiableListView) return _items;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_items);
@@ -255,7 +255,7 @@ abstract mixin class _$CartStateCopyWith<$Res> implements $CartStateCopyWith<$Re
   factory _$CartStateCopyWith(_CartState value, $Res Function(_CartState) _then) = __$CartStateCopyWithImpl;
 @override @useResult
 $Res call({
- List<OrderItem> items
+ List<OrderDishModel> items
 });
 
 
@@ -275,7 +275,7 @@ class __$CartStateCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? items = null,}) {
   return _then(_CartState(
 items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
-as List<OrderItem>,
+as List<OrderDishModel>,
   ));
 }
 

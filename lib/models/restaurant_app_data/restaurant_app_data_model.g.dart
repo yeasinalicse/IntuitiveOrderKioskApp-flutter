@@ -173,10 +173,7 @@ _RestaurantAppDataModel _$RestaurantAppDataModelFromJson(
       const [],
   contactlessOrderTokenList:
       (json['contactlessOrderTokenList'] as List<dynamic>?)
-          ?.map(
-            (e) =>
-                ContactlessOrderTokenModel.fromJson(e as Map<String, dynamic>),
-          )
+          ?.map((e) => OrderModel.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
   offerDiscountList:

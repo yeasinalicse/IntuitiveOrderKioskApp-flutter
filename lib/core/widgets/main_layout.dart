@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../features/menu/presentation/widgets/category_fragment.dart';
-import '../../features/cart/presentation/bottom_cart_bar.dart';
-import '../constants/app_strings.dart';
+import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
+import 'package:intuitiveorderkioskappflutter/features/cart/presentation/bottom_cart_bar.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/category_fragment.dart';
 
 class MainLayout extends StatelessWidget {
   final Widget child;

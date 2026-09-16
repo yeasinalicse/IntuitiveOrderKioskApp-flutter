@@ -18,4 +18,9 @@ class AppStrings {
   static const String random = 'RANDOM';
   static const String newLabel = 'NEW';
   static const String largeLabel = 'LARGE';
+
+  // order policies
+  static const String quickOrder = 'Quick Order';
+  static const String barOrder = 'Bar';
+  static const String kiosk = 'Kiosk';
 }

@@ -16,7 +16,7 @@ class CategoryViewModel extends Notifier<CategoryState> {
   @override
   CategoryState build() {
     // Watch the restaurant data provider
-    final restaurantDataAsync = ref.watch(restaurantDataProvider);
+    final restaurantDataAsync = ref.watch(restaurantAppDataProvider);
 
     return restaurantDataAsync.when(
       data: (data) {

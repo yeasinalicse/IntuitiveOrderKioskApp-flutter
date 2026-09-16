@@ -15,7 +15,7 @@ class PaymentSelectionScreen extends ConsumerWidget {
     final cart = ref.watch(cartProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final int totalItems = cart.items.fold(0, (sum, item) => sum + item.quantity);
+    final int totalItems = cart.items.fold(0, (sum, item) => sum + (item.quantity ?? 0));
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,

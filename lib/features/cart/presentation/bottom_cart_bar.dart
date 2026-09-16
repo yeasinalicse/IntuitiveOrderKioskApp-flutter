@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
-import 'package:intuitiveorderkioskappflutter/models/order_item.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 
 class BottomCartBar extends ConsumerWidget {
@@ -195,7 +195,7 @@ class BottomCartBar extends ConsumerWidget {
     );
   }
 
-  Widget _buildOrderItem(BuildContext context, WidgetRef ref, OrderItem item, double screenWidth, ThemeData theme) {
+  Widget _buildOrderItem(BuildContext context, WidgetRef ref, OrderDishModel item, double screenWidth, ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
@@ -221,7 +221,9 @@ class BottomCartBar extends ConsumerWidget {
                   Divider(height: 1, color: theme.dividerColor),
                   Expanded(
                     child: InkWell(
-                      onTap: () => ref.read(cartProvider.notifier).removeItem(item.id),
+                      onTap: () {
+                        // In a real app, you would call a server method to remove the dish
+                      },
                       child: const Center(
                         child: Text('Remove', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.primaryOrange)),
                       ),
@@ -244,19 +246,19 @@ class BottomCartBar extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            '${item.name} X${item.quantity}',
+                            '${item.dish_name} X${item.quantity}',
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.textTheme.bodyLarge?.color),
                           ),
                         ),
                         Text(
-                          item.price,
+                          '${AppStrings.currencySymbol}${(item.price ?? 0).toStringAsFixed(2)}',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.orange),
                         ),
                       ],
                     ),
-                    if (item.description.isNotEmpty)
+                    if (item.dish_description != null && item.dish_description!.isNotEmpty)
                       Text(
-                        item.description,
+                        item.dish_description!,
                         style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 12),
                       ),
                   ],

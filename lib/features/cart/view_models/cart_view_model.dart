@@ -1,56 +1,43 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:intuitiveorderkioskappflutter/models/order_item.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
+
 part 'cart_view_model.freezed.dart';
 
 @freezed
 abstract class CartState with _$CartState {
   const factory CartState({
-    @Default([]) List<OrderItem> items,
+    @Default([]) List<OrderDishModel> items,
   }) = _CartState;
 
   const CartState._();
 
   double get totalPrice {
-    double total = 0;
-    for (var item in items) {
-      // Remove any currency symbol or non-numeric characters except for the decimal point
-      String priceString = item.price.replaceAll(RegExp(r'[^\d.]'), '');
-      double unitPrice = double.tryParse(priceString) ?? 0;
-      total += unitPrice * item.quantity;
-    }
-    return total;
+    return items.fold(0.0, (sum, item) => sum + (item.total_price ?? 0.0));
   }
 }
 
 class CartViewModel extends Notifier<CartState> {
   @override
   CartState build() {
-    return const CartState();
-  }
+    // Watch orderManagementProvider reactively
+    final saveOrderAsync = ref.watch(orderManagementProvider);
 
-  void addItem(OrderItem item) {
-    state = state.copyWith(items: [...state.items, item]);
-  }
-
-  void updateQuantity(String id, int quantity) {
-    final updatedItems = state.items.map((item) {
-      if (item.id == id) {
-        return item.copyWith(quantity: quantity);
-      }
-      return item;
-    }).toList();
-    state = state.copyWith(items: updatedItems);
-  }
-
-  void removeItem(String id) {
-    state = state.copyWith(
-      items: state.items.where((item) => item.id != id).toList(),
+    return saveOrderAsync.maybeWhen(
+      data: (response) {
+        if (response == null) return const CartState();
+        return CartState(items: response.orderDish);
+      },
+      // If loading or error, we keep the previous items to avoid UI flickering
+      orElse: () => stateOrNull ?? const CartState(),
     );
   }
 
   void clear() {
-    state = state.copyWith(items: []);
+    // Note: To fully clear the cart, you should also reset the orderManagementProvider
+    // but for now we just clear the local state.
+    state = const CartState(items: []);
   }
 }
 

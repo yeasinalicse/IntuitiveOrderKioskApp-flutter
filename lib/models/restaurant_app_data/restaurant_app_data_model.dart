@@ -24,7 +24,7 @@ import 'floor/shape_model.dart';
 import 'floor/type_model.dart';
 import 'floor/floor_object_model.dart';
 import 'floor/floor_object_background_model.dart';
-import 'order/contactless_order_token_model.dart';
+import 'order/order_model.dart';
 import 'order/online_card_payment_order_model.dart';
 import 'order/offer_discount_model.dart';
 import 'order/delivery_charge_model.dart';
@@ -84,7 +84,7 @@ abstract class RestaurantAppDataModel with _$RestaurantAppDataModel {
     @Default([]) List<OptionGroupModel> optiongroupList,
     @Default([]) List<GroupwiseOptionModel> groupwiseoptionList,
     @Default([]) List<DishGroupModel> dishgroupList,
-    @Default([]) List<ContactlessOrderTokenModel> contactlessOrderTokenList,
+    @Default([]) List<OrderModel> contactlessOrderTokenList,
     @Default([]) List<OfferDiscountModel> offerDiscountList,
     @Default([]) List<DeliveryChargeModel> deliveryChargeList,
     @Default([]) List<OnlineCardPaymentOrderModel> onlineCardPaymentOrderList,

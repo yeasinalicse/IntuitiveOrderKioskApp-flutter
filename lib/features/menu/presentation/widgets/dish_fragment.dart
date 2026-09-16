@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_assets.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
-import 'package:intuitiveorderkioskappflutter/features/menu/view_models/product_view_model.dart';
-import 'package:intuitiveorderkioskappflutter/features/menu/view_models/save_order_with_dish_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/dish_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 
 class DishFragment extends ConsumerWidget {
@@ -13,7 +13,10 @@ class DishFragment extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dishList = ref.watch(dishProvider);
+    final parentDishId = ref.watch(dishParentProvider);
     final theme = Theme.of(context);
+
+    final hasParent = parentDishId != null;
 
     final demoImages = [
       AppAssets.dish1,
@@ -27,7 +30,7 @@ class DishFragment extends ConsumerWidget {
     ];
 
     // Listen to save order state for showing feedback
-    ref.listen(saveOrderProvider, (previous, next) {
+    ref.listen(orderManagementProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stack) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -44,7 +47,7 @@ class DishFragment extends ConsumerWidget {
       );
     });
 
-    if (dishList.isEmpty) {
+    if (dishList.isEmpty && !hasParent) {
       return const Center(child: Text('No products found in this category'));
     }
 
@@ -56,14 +59,46 @@ class DishFragment extends ConsumerWidget {
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
-      itemCount: dishList.length,
+      itemCount: dishList.length + (hasParent ? 1 : 0),
       itemBuilder: (context, index) {
-        final dish = dishList[index];
-        final demoImage = demoImages[index % demoImages.length];
+        if (hasParent && index == 0) {
+          return GestureDetector(
+            onTap: () => ref.read(dishParentProvider.notifier).reset(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.cardTheme.color,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: theme.dividerColor, width: 1),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.arrow_back, color: theme.primaryColor, size: 40),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Back',
+                    style: TextStyle(
+                      color: theme.textTheme.headlineLarge?.color,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final dishIndex = hasParent ? index - 1 : index;
+        final dish = dishList[dishIndex];
+        final demoImage = demoImages[dishIndex % demoImages.length];
         return GestureDetector(
           onTap: () {
-            ref.read(saveOrderProvider.notifier).saveOrderWithDish(dish);
-            onDishSelected(dish, dish.id.toString());
+            if (dish.is_parent == true) {
+              ref.read(dishParentProvider.notifier).setParentDish(dish.id);
+            } else {
+              onDishSelected(dish, dish.id.toString());
+            }
           },
           child: Container(
             decoration: BoxDecoration(
@@ -95,8 +130,7 @@ class DishFragment extends ConsumerWidget {
                         demoImage,
                         height: 80,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => 
-                            Icon(Icons.fastfood, color: theme.textTheme.bodyMedium?.color, size: 80),
+                        errorBuilder: (context, error, stackTrace) =>  Icon(Icons.fastfood, color: theme.textTheme.bodyMedium?.color, size: 80),
                       ),
                       const Spacer(),
                       Text(

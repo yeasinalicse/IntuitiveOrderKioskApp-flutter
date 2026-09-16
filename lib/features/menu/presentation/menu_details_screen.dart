@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
-import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
-import 'package:intuitiveorderkioskappflutter/models/order_item.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 
 class MenuDetailsScreen extends ConsumerStatefulWidget {
+  final DishModel dish;
   final String itemId;
   final String productName;
   final String productPrice;
@@ -14,6 +15,7 @@ class MenuDetailsScreen extends ConsumerStatefulWidget {
 
   const MenuDetailsScreen({
     super.key,
+    required this.dish,
     required this.itemId,
     required this.productName,
     required this.productPrice,
@@ -26,7 +28,7 @@ class MenuDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _MenuDetailsScreenState extends ConsumerState<MenuDetailsScreen> {
-  int selectedMeatIndex = 2; // Default to 'Mix'
+  int selectedMeatIndex = 2;
   int _quantity = 1;
   final Set<String> _selectedExtras = {};
 
@@ -60,16 +62,14 @@ class _MenuDetailsScreenState extends ConsumerState<MenuDetailsScreen> {
     ];
 
     try {
-      ref.read(cartProvider.notifier).addItem(
-        OrderItem(
-          id: widget.itemId,
-          name: widget.productName,
-          price: '${AppStrings.currencySymbol}${(_unitPrice + _extrasTotal).toStringAsFixed(2)}',
-          quantity: _quantity,
-          description: customizations.join(", "),
-          customizations: customizations,
-        ),
+      // Server sync - This will now handle both initial save and subsequent adds
+      // The CartViewModel watches orderManagementProvider, so it will update automatically
+      ref.read(orderManagementProvider.notifier).addToOrder(
+        widget.dish,
+        quantity: _quantity,
+        totalPrice: _totalPrice,
       );
+
       debugPrint("Item added successfully");
       widget.onBack();
     } catch (e) {
@@ -89,6 +89,24 @@ class _MenuDetailsScreenState extends ConsumerState<MenuDetailsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    // Listen to save order state for showing feedback
+    ref.listen(orderManagementProvider, (previous, next) {
+      next.whenOrNull(
+        error: (error, stack) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error saving order: $error')),
+          );
+        },
+        data: (data) {
+          if (data != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Order saved successfully!')),
+            );
+          }
+        },
+      );
+    });
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
