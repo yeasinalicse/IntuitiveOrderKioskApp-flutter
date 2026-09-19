@@ -2,20 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_assets.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/category_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/dish_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/get_group_id_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/option_group_pop_up.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
+import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 
 class DishFragment extends ConsumerWidget {
-  final Function(DishModel, String) onDishSelected;
+  final Function(DishModel, CategoryModel?, int?, String) onDishSelected;
   const DishFragment({super.key, required this.onDishSelected});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dishList = ref.watch(dishProvider);
     final parentDishId = ref.watch(dishParentProvider);
+    final categoryState = ref.watch(categoryProvider);
+    final groupIdViewModel = ref.watch(getGroupIdProvider);
     final theme = Theme.of(context);
 
+    final selectedCategory = categoryState.selectedCategory;
     final hasParent = parentDishId != null;
 
     final demoImages = [
@@ -29,7 +37,7 @@ class DishFragment extends ConsumerWidget {
       AppAssets.dish8,
     ];
 
-    // Listen to save order state for showing feedback
+    // Listen to save order state for showing feedback and extracting group_id
     ref.listen(orderManagementProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stack) {
@@ -39,9 +47,47 @@ class DishFragment extends ConsumerWidget {
         },
         data: (data) {
           if (data != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Order saved successfully!')),
-            );
+            // Success! Now extract group_id from the dish that was just added
+            final lastAddedOrderDish = data.selectedDish;
+            
+            if (lastAddedOrderDish != null) {
+              // Find the original DishModel to use our groupIdViewModel
+              final originalDish = dishList.firstWhere(
+                (d) => d.id == lastAddedOrderDish.restaurant_dish_id,
+                orElse: () => const DishModel(),
+              );
+
+              if (originalDish.id != null) {
+                final groupId = groupIdViewModel.getPrimaryGroupId(originalDish, selectedCategory);
+                
+                debugPrint('Dish added directly from Fragment! Extracted Group ID: $groupId');
+
+                // 1. Navigate to MenuDetailsScreen first (to show Allergens/Info)
+                if (context.mounted) {
+                  onDishSelected(originalDish, selectedCategory, groupId, originalDish.id.toString());
+                }
+
+                // 2. If it has OptionGroups, show the Customization Popup on top
+                final restaurantData = ref.read(restaurantAppDataProvider).value;
+                final hasOptionGroups = restaurantData?.optiongroupList.any((og) => og.parent_id == groupId) ?? false;
+
+                if (hasOptionGroups && context.mounted) {
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    if (context.mounted) {
+                      OptionGroupPopup.show(context, groupId: groupId);
+                    }
+                  });
+                }
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Added ${originalDish.name} to order')),
+                );
+              }
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Order saved successfully!')),
+              );
+            }
           }
         },
       );
@@ -97,7 +143,12 @@ class DishFragment extends ConsumerWidget {
             if (dish.is_parent == true) {
               ref.read(dishParentProvider.notifier).setParentDish(dish.id);
             } else {
-              onDishSelected(dish, dish.id.toString());
+              // Directly add to order instead of navigating to details
+              ref.read(orderManagementProvider.notifier).addToOrder(
+                dish,
+                category: selectedCategory,
+                quantity: 1,
+              );
             }
           },
           child: Container(

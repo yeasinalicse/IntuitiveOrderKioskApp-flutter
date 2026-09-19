@@ -9,6 +9,7 @@ abstract class CategoryState with _$CategoryState {
   const factory CategoryState({
     @Default([]) List<CategoryModel> categories,
     @Default(0) int selectedCategoryIndex,
+    CategoryModel? selectedCategory,
   }) = _CategoryState;
 }
 
@@ -24,6 +25,7 @@ class CategoryViewModel extends Notifier<CategoryState> {
         return CategoryState(
           categories: categories,
           selectedCategoryIndex: 0,
+          selectedCategory: categories.isNotEmpty ? categories[0] : null,
         );
       },
       loading: () => CategoryState(),
@@ -32,7 +34,14 @@ class CategoryViewModel extends Notifier<CategoryState> {
   }
 
   void setSelectedCategory(int index) {
-    state = state.copyWith(selectedCategoryIndex: index);
+    if (index >= 0 && index < state.categories.length) {
+      state = state.copyWith(
+        selectedCategoryIndex: index,
+        selectedCategory: state.categories[index],
+      );
+    } else {
+      state = state.copyWith(selectedCategoryIndex: index);
+    }
   }
 
   CategoryModel? get selectedCategory {

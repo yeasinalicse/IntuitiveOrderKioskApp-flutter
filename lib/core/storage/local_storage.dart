@@ -14,7 +14,6 @@ final localStorageProvider = Provider<LocalStorage>((ref) {
 class LocalStorage {
   final SharedPreferences _prefs;
   LocalStorage(this._prefs);
-
   static const String _terminalIdKey = 'terminal_id';
   static const String _userIdKey = 'user_id';
   static const String _quickOrderPolicyIdKey = 'quick_order_policy_id';

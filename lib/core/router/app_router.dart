@@ -29,9 +29,11 @@ class AppRouter {
           GoRoute(
             path: '/menu',
             builder: (context, state) => DishFragment(
-              onDishSelected: (dish, itemId) {
+              onDishSelected: (dish, category, groupId, itemId) {
                 context.push('/details', extra: {
                   'dish': dish,
+                  'category': category,
+                  'groupId': groupId,
                   'itemId': itemId,
                   'productName': dish.name ?? '',
                   'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
@@ -46,10 +48,12 @@ class AppRouter {
               final extras = state.extra as Map<String, dynamic>;
               return MenuDetailsScreen(
                 dish: extras['dish'],
-                itemId: extras['itemId'] as String,
-                productName: extras['productName'] as String,
-                productPrice: extras['productPrice'] as String,
-                productImage: extras['productImage'] as String,
+                category: extras['category'],
+                groupId: extras['groupId'],
+                dishId: extras['itemId'] as String,
+                dishName: extras['productName'] as String,
+                dishPrice: extras['productPrice'] as String,
+                dishImage: extras['productImage'] as String,
                 onBack: () => context.pop(),
               );
             },

@@ -8,6 +8,7 @@ import 'package:intuitiveorderkioskappflutter/models/requests/save_restaurant_or
 import 'package:intuitiveorderkioskappflutter/models/requests/add_dish_on_order_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/common/bags_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/responses/order_response/order_response_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 import 'package:intuitiveorderkioskappflutter/providers/api_providers.dart';
@@ -25,17 +26,17 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
 
   OrderManagementNotifier(this.ref) : super(const AsyncValue.data(null));
 
-  Future<void> addToOrder(DishModel dish, {int quantity = 1, double? totalPrice}) async {
+  Future<void> addToOrder(DishModel dish, {CategoryModel? category, int quantity = 1, double? totalPrice}) async {
     final currentOrderResponse = state.value;
     
     if (currentOrderResponse == null || currentOrderResponse.order == null) {
-      await saveOrderWithDish(dish, quantity: quantity, totalPrice: totalPrice);
+      await saveOrderWithDish(dish, category: category, quantity: quantity, totalPrice: totalPrice);
     } else {
-      await addDishToOrder(dish, quantity: quantity, totalPrice: totalPrice);
+      await addDishToOrder(dish, category: category, quantity: quantity, totalPrice: totalPrice);
     }
   }
 
-  Future<void> saveOrderWithDish(DishModel dish, {int quantity = 1, double? totalPrice}) async {
+  Future<void> saveOrderWithDish(DishModel dish, {CategoryModel? category, int quantity = 1, double? totalPrice}) async {
     state = const AsyncValue.loading();
     try {
       final terminalId = ref.read(localStorageProvider).getTerminalId();
@@ -122,7 +123,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
           dish_description: dish.dish_description,
           dish_pack_size: dish.pack_size,
           dish_expiry_date: dish.expiry_date,
-          vat_rate: dish.vat_rate,
+          vat_rate: dish.vat_rate ?? 0,
           is_vat_included: dish.is_vat_included,
           terminal_access_status: true,
           disable_on_android: false,
@@ -172,14 +173,12 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
       final repository = ref.read(restaurantRepositoryProvider);
       final response = await repository.saveRestaurantOrderWithDish(request);
       state = AsyncValue.data(response);
-      logger.i('Order saved successfully: $response');
     } catch (e, stack) {
-      logger.e('Failed to save order: $e');
       state = AsyncValue.error(e, stack);
     }
   }
 
-  Future<void> addDishToOrder(DishModel dish, {int quantity = 1, double? totalPrice}) async {
+  Future<void> addDishToOrder(DishModel dish, {CategoryModel? category, int quantity = 1, double? totalPrice}) async {
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null || currentOrderResponse.order == null) {
       logger.w('Cannot add dish: No active order found in state.');
@@ -222,7 +221,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
             dish_description: dish.dish_description,
             dish_pack_size: dish.pack_size,
             dish_expiry_date: dish.expiry_date,
-            vat_rate: dish.vat_rate,
+            vat_rate: dish.vat_rate ?? 0,
             is_vat_included: dish.is_vat_included,
             terminal_access_status: true,
             disable_on_android: false,
@@ -274,9 +273,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
       if(response.status_code == 200 && response.order != null){
         state = AsyncValue.data(response);
       }
-      logger.i('Dish added to order successfully: $response');
     } catch (e, stack) {
-      logger.e('Failed to add dish to order: $e');
       state = AsyncValue.error(e, stack);
     }
   }

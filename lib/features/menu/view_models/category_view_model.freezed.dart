@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CategoryState {
 
- List<CategoryModel> get categories; int get selectedCategoryIndex;
+ List<CategoryModel> get categories; int get selectedCategoryIndex; CategoryModel? get selectedCategory;
 /// Create a copy of CategoryState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $CategoryStateCopyWith<CategoryState> get copyWith => _$CategoryStateCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as CategoryState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryState&&const DeepCollectionEquality().equals(other.categories, _this.categories)&&(identical(other.selectedCategoryIndex, _this.selectedCategoryIndex) || other.selectedCategoryIndex == _this.selectedCategoryIndex));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryState&&const DeepCollectionEquality().equals(other.categories, _this.categories)&&(identical(other.selectedCategoryIndex, _this.selectedCategoryIndex) || other.selectedCategoryIndex == _this.selectedCategoryIndex)&&(identical(other.selectedCategory, _this.selectedCategory) || other.selectedCategory == _this.selectedCategory));
 }
 
 
 @override
 int get hashCode {
   final _this = this as CategoryState;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.categories),_this.selectedCategoryIndex);
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.categories),_this.selectedCategoryIndex,_this.selectedCategory);
 }
 
 @override
 String toString() {
   final _this = this as CategoryState;
-  return 'CategoryState(categories: ${_this.categories}, selectedCategoryIndex: ${_this.selectedCategoryIndex})';
+  return 'CategoryState(categories: ${_this.categories}, selectedCategoryIndex: ${_this.selectedCategoryIndex}, selectedCategory: ${_this.selectedCategory})';
 }
 
 
@@ -51,11 +51,11 @@ abstract mixin class $CategoryStateCopyWith<$Res>  {
   factory $CategoryStateCopyWith(CategoryState value, $Res Function(CategoryState) _then) = _$CategoryStateCopyWithImpl;
 @useResult
 $Res call({
- List<CategoryModel> categories, int selectedCategoryIndex
+ List<CategoryModel> categories, int selectedCategoryIndex, CategoryModel? selectedCategory
 });
 
 
-
+$CategoryModelCopyWith<$Res>? get selectedCategory;
 
 }
 /// @nodoc
@@ -68,14 +68,27 @@ class _$CategoryStateCopyWithImpl<$Res>
 
 /// Create a copy of CategoryState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? categories = null,Object? selectedCategoryIndex = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? categories = null,Object? selectedCategoryIndex = null,Object? selectedCategory = freezed,}) {
   return _then(CategoryState(
 categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
 as List<CategoryModel>,selectedCategoryIndex: null == selectedCategoryIndex ? _self.selectedCategoryIndex : selectedCategoryIndex // ignore: cast_nullable_to_non_nullable
-as int,
+as int,selectedCategory: freezed == selectedCategory ? _self.selectedCategory : selectedCategory // ignore: cast_nullable_to_non_nullable
+as CategoryModel?,
   ));
 }
+/// Create a copy of CategoryState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CategoryModelCopyWith<$Res>? get selectedCategory {
+    if (_self.selectedCategory == null) {
+    return null;
+  }
 
+  return $CategoryModelCopyWith<$Res>(_self.selectedCategory!, (value) {
+    return _then(_self.copyWith(selectedCategory: value));
+  });
+}
 }
 
 
@@ -157,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<CategoryModel> categories,  int selectedCategoryIndex)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<CategoryModel> categories,  int selectedCategoryIndex,  CategoryModel? selectedCategory)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CategoryState() when $default != null:
-return $default(_that.categories,_that.selectedCategoryIndex);case _:
+return $default(_that.categories,_that.selectedCategoryIndex,_that.selectedCategory);case _:
   return orElse();
 
 }
@@ -178,10 +191,10 @@ return $default(_that.categories,_that.selectedCategoryIndex);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<CategoryModel> categories,  int selectedCategoryIndex)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<CategoryModel> categories,  int selectedCategoryIndex,  CategoryModel? selectedCategory)  $default,) {final _that = this;
 switch (_that) {
 case _CategoryState():
-return $default(_that.categories,_that.selectedCategoryIndex);case _:
+return $default(_that.categories,_that.selectedCategoryIndex,_that.selectedCategory);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +211,10 @@ return $default(_that.categories,_that.selectedCategoryIndex);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<CategoryModel> categories,  int selectedCategoryIndex)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<CategoryModel> categories,  int selectedCategoryIndex,  CategoryModel? selectedCategory)?  $default,) {final _that = this;
 switch (_that) {
 case _CategoryState() when $default != null:
-return $default(_that.categories,_that.selectedCategoryIndex);case _:
+return $default(_that.categories,_that.selectedCategoryIndex,_that.selectedCategory);case _:
   return null;
 
 }
@@ -213,7 +226,7 @@ return $default(_that.categories,_that.selectedCategoryIndex);case _:
 
 
 class _CategoryState implements CategoryState {
-  const _CategoryState({ List<CategoryModel> categories = const [], this.selectedCategoryIndex = 0}): _categories = categories;
+  const _CategoryState({ List<CategoryModel> categories = const [], this.selectedCategoryIndex = 0, this.selectedCategory}): _categories = categories;
   
 
  final  List<CategoryModel> _categories;
@@ -224,6 +237,7 @@ class _CategoryState implements CategoryState {
 }
 
 @override@JsonKey() final  int selectedCategoryIndex;
+@override final  CategoryModel? selectedCategory;
 
 /// Create a copy of CategoryState
 /// with the given fields replaced by the non-null parameter values.
@@ -235,18 +249,18 @@ _$CategoryStateCopyWith<_CategoryState> get copyWith => __$CategoryStateCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryState&&const DeepCollectionEquality().equals(other.categories, _categories)&&(identical(other.selectedCategoryIndex, selectedCategoryIndex) || other.selectedCategoryIndex == selectedCategoryIndex));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryState&&const DeepCollectionEquality().equals(other.categories, _categories)&&(identical(other.selectedCategoryIndex, selectedCategoryIndex) || other.selectedCategoryIndex == selectedCategoryIndex)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_categories),selectedCategoryIndex);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_categories),selectedCategoryIndex,selectedCategory);
 }
 
 @override
 String toString() {
-    return 'CategoryState(categories: $categories, selectedCategoryIndex: $selectedCategoryIndex)';
+    return 'CategoryState(categories: $categories, selectedCategoryIndex: $selectedCategoryIndex, selectedCategory: $selectedCategory)';
 }
 
 
@@ -257,11 +271,11 @@ abstract mixin class _$CategoryStateCopyWith<$Res> implements $CategoryStateCopy
   factory _$CategoryStateCopyWith(_CategoryState value, $Res Function(_CategoryState) _then) = __$CategoryStateCopyWithImpl;
 @override @useResult
 $Res call({
- List<CategoryModel> categories, int selectedCategoryIndex
+ List<CategoryModel> categories, int selectedCategoryIndex, CategoryModel? selectedCategory
 });
 
 
-
+@override $CategoryModelCopyWith<$Res>? get selectedCategory;
 
 }
 /// @nodoc
@@ -274,15 +288,28 @@ class __$CategoryStateCopyWithImpl<$Res>
 
 /// Create a copy of CategoryState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? categories = null,Object? selectedCategoryIndex = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? categories = null,Object? selectedCategoryIndex = null,Object? selectedCategory = freezed,}) {
   return _then(_CategoryState(
 categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
 as List<CategoryModel>,selectedCategoryIndex: null == selectedCategoryIndex ? _self.selectedCategoryIndex : selectedCategoryIndex // ignore: cast_nullable_to_non_nullable
-as int,
+as int,selectedCategory: freezed == selectedCategory ? _self.selectedCategory : selectedCategory // ignore: cast_nullable_to_non_nullable
+as CategoryModel?,
   ));
 }
 
+/// Create a copy of CategoryState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$CategoryModelCopyWith<$Res>? get selectedCategory {
+    if (_self.selectedCategory == null) {
+    return null;
+  }
 
+  return $CategoryModelCopyWith<$Res>(_self.selectedCategory!, (value) {
+    return _then(_self.copyWith(selectedCategory: value));
+  });
+}
 }
 
 // dart format on
