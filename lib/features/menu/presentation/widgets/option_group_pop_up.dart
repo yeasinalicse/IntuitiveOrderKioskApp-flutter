@@ -33,6 +33,22 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
 
+    if (widget.groupId != null) {
+      ref.listen(instructionProvider(widget.groupId), (previous, next) {
+        if (next.errorMessage != null && next.errorMessage != previous?.errorMessage) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(next.errorMessage!),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          ref.read(instructionProvider(widget.groupId).notifier).clearError();
+        }
+      });
+    }
+
     return Container(
       height: size.height * 0.7,
       margin: const EdgeInsets.all(20), // Margin around the popup to show border

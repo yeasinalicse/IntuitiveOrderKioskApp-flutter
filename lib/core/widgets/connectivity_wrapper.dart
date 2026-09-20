@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intuitiveorderkioskappflutter/core/enums/enums.dart';
 import 'package:intuitiveorderkioskappflutter/providers/network_provider.dart';
 
 class ConnectivityWrapper extends ConsumerWidget {

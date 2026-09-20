@@ -3,4 +3,5 @@ class ApiConstants {
   static const String applicationData = '/ApplicationData';
   static const String saveRestaurantOrderWithDish = '/SaveRestaurantOrderWithDish';
   static const String addDishOnOrder = '/AddDishOnOrder';
+  static const String saveUpdateOrderDishInstruction = '/SaveUpdateOrderDishInstruction';
 }

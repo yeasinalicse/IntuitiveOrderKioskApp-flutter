@@ -1,7 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-enum NetworkStatus { connected, disconnected }
+import 'package:intuitiveorderkioskappflutter/core/enums/enums.dart';
 
 final networkStatusProvider = StreamProvider<NetworkStatus>((ref) {
   return Connectivity().onConnectivityChanged.map((result) {

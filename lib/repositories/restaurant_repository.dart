@@ -4,6 +4,7 @@ import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/restaur
 import 'package:intuitiveorderkioskappflutter/core/utils/logger.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_restaurant_order_with_dish.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/add_dish_on_order_request.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
 
 class RestaurantRepository {
   final RestaurantRemoteDataSource _remoteDataSource;
@@ -36,6 +37,16 @@ class RestaurantRepository {
       return OrderResponseModel.fromJson(data);
     } catch (e) {
       logger.e('Error in addDishOnOrder: $e');
+      rethrow;
+    }
+  }
+
+  Future<OrderResponseModel> saveUpdateOrderDishInstruction(SaveUpdateOrderDishInstructionRequest request) async {
+    try {
+      final data = await _remoteDataSource.saveUpdateOrderDishInstruction(request);
+      return OrderResponseModel.fromJson(data);
+    } catch (e) {
+      logger.e('Error in saveUpdateOrderDishInstruction: $e');
       rethrow;
     }
   }

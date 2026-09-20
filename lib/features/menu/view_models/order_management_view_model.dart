@@ -6,6 +6,7 @@ import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/b
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/selected_chair_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_restaurant_order_with_dish.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/add_dish_on_order_request.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/common/bags_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
@@ -275,6 +276,29 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
       }
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<void> saveUpdateOrderDishInstruction(SaveUpdateOrderDishInstructionRequest request) async {
+    final currentOrderResponse = state.value;
+    if (currentOrderResponse == null) return;
+
+    try {
+      final repository = ref.read(restaurantRepositoryProvider);
+      final response = await repository.saveUpdateOrderDishInstruction(request);
+      if (response.status_code == 200) {
+        state = AsyncValue.data(response);
+      }
+    } catch (e, stack) {
+      logger.e('Error updating instruction: $e');
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  void setSelectedDish(OrderDishModel dish) {
+    final currentResponse = state.value;
+    if (currentResponse != null) {
+      state = AsyncValue.data(currentResponse.copyWith(selectedDish: dish));
     }
   }
 }

@@ -4,6 +4,8 @@ import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/option_group_pop_up.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/instruction_view_model.dart';
 
 class MenuDetailsScreen extends ConsumerWidget {
   final DishModel dish;
@@ -46,6 +48,7 @@ class MenuDetailsScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 24),
+                      _buildOptionsSection(context, ref, theme),
                       _buildAllergensSection(ref, theme),
                       const SizedBox(height: 40),
                     ],
@@ -150,6 +153,56 @@ class MenuDetailsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildOptionsSection(BuildContext context, WidgetRef ref, ThemeData theme) {
+    if (groupId == null) return const SizedBox.shrink();
+    final instructionState = ref.watch(instructionProvider(groupId));
+    final optionGroups = instructionState.optionGroups;
+
+    if (optionGroups.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () {
+            OptionGroupPopup.show(context, groupId: groupId);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.orange,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.orange.withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.tune, size: 20, color: Colors.white),
+                SizedBox(width: 8),
+                Text(
+                  'Options',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 16, 
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
     );
   }
 

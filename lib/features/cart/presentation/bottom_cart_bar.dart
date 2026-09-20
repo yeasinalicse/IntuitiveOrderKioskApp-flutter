@@ -5,6 +5,11 @@ import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
+import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/get_group_id_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
 
 class BottomCartBar extends ConsumerWidget {
   const BottomCartBar({super.key});
@@ -212,7 +217,37 @@ class BottomCartBar extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        final restaurantData = ref.read(restaurantAppDataProvider).value;
+                        if (restaurantData == null) return;
+
+                        final dish = restaurantData.dishsList.firstWhere(
+                          (d) => d.id == item.restaurant_dish_id,
+                          orElse: () => const DishModel(),
+                        );
+
+                        if (dish.id == null) return;
+
+                        final category = restaurantData.categoryList.firstWhere(
+                          (c) => c.id == dish.dish_category_id,
+                          orElse: () => const CategoryModel(),
+                        );
+
+                        final groupId = ref.read(getGroupIdProvider).getPrimaryGroupId(dish, category);
+
+                        // Set the selected dish in order management so instructions are applied to it
+                        ref.read(orderManagementProvider.notifier).setSelectedDish(item);
+
+                        context.push('/details', extra: {
+                          'dish': dish,
+                          'category': category.id != null ? category : null,
+                          'groupId': groupId,
+                          'itemId': dish.id.toString(),
+                          'productName': dish.name ?? '',
+                          'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
+                          'productImage': '',
+                        });
+                      },
                       child: Center(
                         child: Text('EDIT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: theme.textTheme.bodyMedium?.color)),
                       ),
