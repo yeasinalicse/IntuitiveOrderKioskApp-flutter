@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/instruction_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/instruction_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_instruction_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 
 class OptionGroupPopup extends ConsumerStatefulWidget {
@@ -66,14 +69,50 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(38), // Match border radius
-        child: Column(
+        child: Stack(
           children: [
-            _buildDragHandle(theme),
-            _buildHeader(theme),
-            Expanded(
-              child: _buildBody(theme),
+            Column(
+              children: [
+                _buildDragHandle(theme),
+                _buildHeader(theme),
+                Expanded(
+                  child: _buildBody(theme),
+                ),
+                _buildFooter(theme),
+              ],
             ),
-            _buildFooter(theme),
+            // Close button in top-right corner
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.pop(context),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.cardTheme.color,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: theme.textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -93,49 +132,27 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
   }
 
   Widget _buildHeader(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 10, 24, 20),
-      child: Stack(
-        alignment: Alignment.center,
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(24, 10, 24, 20),
+      child: Column(
         children: [
-          // Centered Title
-          const Column(
-            children: [
-              Text(
-                "Add on",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -1,
-                  color: AppColors.orange,
-                ),
-              ),
-              Text(
-                "Customize your meal",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          Text(
+            "Add on",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -1,
+              color: AppColors.orange,
+            ),
           ),
-          
-          // Close button positioned to the right
-          Positioned(
-            right: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.cardTheme.color,
-                shape: BoxShape.circle,
-                border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.close, size: 20),
-                onPressed: () => Navigator.pop(context),
-              ),
+          Text(
+            "Customize your meal",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -231,7 +248,14 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
 
   Widget _buildInstructionItem(InstructionModel ins, ThemeData theme) {
     final instructionState = ref.watch(instructionProvider(widget.groupId));
-    final isSelected = instructionState.selectedInstructionIds.contains(ins.id);
+    final isSelectedInState = instructionState.selectedInstructionIds.contains(ins.id);
+
+    final selectedOrderDish = _getSelectedOrderDish(ref);
+    final quantityFromOrder = _getInstructionQuantityFromOrderResponse(selectedOrderDish, ins);
+
+    final isSelected = isSelectedInState || quantityFromOrder > 0;
+    final quantity = quantityFromOrder > 0 ? quantityFromOrder : (isSelectedInState ? 1 : 0);
+
     final hasPrice = ins.price != null && ins.price! > 0;
 
     return InkWell(
@@ -251,7 +275,7 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
         child: Row(
           children: [
             Icon(
-              isSelected ? Icons.check_circle : Icons.add_circle_outline,
+              isSelected ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
               color: isSelected ? AppColors.orange : theme.textTheme.bodySmall?.color?.withValues(alpha: 0.4),
               size: 22,
             ),
@@ -279,10 +303,103 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
                 ],
               ),
             ),
+            if (isSelected && quantity > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.orange,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'x$quantity',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  OrderDishModel? _getSelectedOrderDish(WidgetRef ref) {
+    final orderResponse = ref.watch(orderManagementProvider).value;
+    if (orderResponse == null) return null;
+
+    final selected = orderResponse.selectedDish;
+    if (selected != null) {
+      final matchInList = orderResponse.orderDish.firstWhere(
+        (d) => (selected.id != null && d.id == selected.id) ||
+               (selected.restaurant_dish_id != null && d.restaurant_dish_id == selected.restaurant_dish_id),
+        orElse: () => selected,
+      );
+      return matchInList;
+    }
+
+    if (orderResponse.orderDish.isNotEmpty) {
+      return orderResponse.orderDish.last;
+    }
+
+    return null;
+  }
+
+  OrderDishInstructionModel? _findMatchingInstruction(OrderDishModel? orderDish, InstructionModel ins) {
+    if (orderDish == null || orderDish.instructions.isEmpty) return null;
+
+    for (final orderIns in orderDish.instructions) {
+      if ((orderIns.dish_instruction_id != null && orderIns.dish_instruction_id == ins.id) ||
+          (orderIns.id != null && ins.id != null && orderIns.id.toString() == ins.id.toString())) {
+        return orderIns;
+      }
+      if (orderIns.instruction != null &&
+          ins.instruction != null &&
+          orderIns.instruction!.trim().toLowerCase() == ins.instruction!.trim().toLowerCase()) {
+        return orderIns;
+      }
+    }
+    return null;
+  }
+
+  int _getInstructionQuantityFromOrderResponse(OrderDishModel? orderDish, InstructionModel ins) {
+    if (orderDish == null) return 0;
+
+    final match = _findMatchingInstruction(orderDish, ins);
+    if (match != null) {
+      return match.quantity ?? 1;
+    }
+
+    if (orderDish.InstructionsList != null && orderDish.InstructionsList!.isNotEmpty) {
+      for (final item in orderDish.InstructionsList!) {
+        if (item is Map) {
+          final id = item['dish_instruction_id'] ?? item['instruction_id'] ?? item['id'];
+          final name = item['instruction']?.toString() ?? item['name']?.toString();
+          if ((id != null && (id == ins.id || id.toString() == ins.id.toString())) ||
+              (name != null && ins.instruction != null && name.trim().toLowerCase() == ins.instruction!.trim().toLowerCase())) {
+            final qty = item['quantity'];
+            return (qty is num) ? qty.toInt() : 1;
+          }
+        }
+      }
+    }
+
+    if (orderDish.dish_instructions != null && ins.instruction != null && ins.instruction!.trim().isNotEmpty) {
+      if (orderDish.dish_instructions!.toLowerCase().contains(ins.instruction!.trim().toLowerCase())) {
+        return 1;
+      }
+    }
+
+    if (orderDish.default_instruction != null && ins.instruction != null && ins.instruction!.trim().isNotEmpty) {
+      if (orderDish.default_instruction!.toLowerCase().contains(ins.instruction!.trim().toLowerCase())) {
+        return 1;
+      }
+    }
+
+    return 0;
   }
 
   Widget _buildFooter(ThemeData theme) {

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
-import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
-import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
-import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/option_group_pop_up.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/instruction_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
+import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 
 class MenuDetailsScreen extends ConsumerWidget {
   final DishModel dish;
@@ -32,7 +34,7 @@ class MenuDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
@@ -49,7 +51,7 @@ class MenuDetailsScreen extends ConsumerWidget {
                     children: [
                       const SizedBox(height: 24),
                       _buildOptionsSection(context, ref, theme),
-                      _buildAllergensSection(ref, theme),
+                      _buildAllergensSection(context, ref, theme),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -57,7 +59,7 @@ class MenuDetailsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          
+
           // Fixed Back Button
           Positioned(
             top: 40,
@@ -99,7 +101,7 @@ class MenuDetailsScreen extends ConsumerWidget {
             Image.asset(dishImage, height: 200, fit: BoxFit.contain)
           else
             const Icon(Icons.fastfood, size: 120, color: AppColors.orange),
-          
+
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -192,8 +194,8 @@ class MenuDetailsScreen extends ConsumerWidget {
                 Text(
                   'Options',
                   style: TextStyle(
-                    fontWeight: FontWeight.bold, 
-                    fontSize: 16, 
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                     color: Colors.white,
                   ),
                 ),
@@ -206,8 +208,25 @@ class MenuDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAllergensSection(WidgetRef ref, ThemeData theme) {
+  Widget _buildAllergensSection(BuildContext context, WidgetRef ref, ThemeData theme) {
     final restaurantDataAsync = ref.watch(restaurantAppDataProvider);
+    final orderResponse = ref.watch(orderManagementProvider).value;
+
+    OrderDishModel? currentOrderDish;
+    if (orderResponse != null) {
+      if (orderResponse.selectedDish != null &&
+          (orderResponse.selectedDish!.restaurant_dish_id == dish.id ||
+              orderResponse.selectedDish!.id == dishId)) {
+        currentOrderDish = orderResponse.selectedDish;
+      } else if (orderResponse.orderDish.isNotEmpty) {
+        currentOrderDish = orderResponse.orderDish.cast<OrderDishModel?>().lastWhere(
+          (d) => d != null && (d.restaurant_dish_id == dish.id || d.id == dishId),
+          orElse: () => orderResponse.selectedDish ?? orderResponse.orderDish.last,
+        );
+      }
+    }
+
+    final currentDishAllergens = currentOrderDish?.dish_allergens ?? dish.allergens;
 
     return restaurantDataAsync.maybeWhen(
       data: (data) {
@@ -223,25 +242,54 @@ class MenuDetailsScreen extends ConsumerWidget {
             Wrap(
               spacing: 10,
               runSpacing: 10,
-              children: data.allergenList.map((a) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: theme.cardTheme.color,
+              children: data.allergenList.map((a) {
+                final allergenName = a.name ?? '';
+                final allergenContent = "***Allergen Warning***$allergenName***";
+                final isSelected = currentDishAllergens != null &&
+                    currentDishAllergens.split('\n').any((e) => e.trim() == allergenContent);
+
+                return InkWell(
+                  onTap: () {
+                    ref.read(orderManagementProvider.notifier).toggleAllergen(
+                          dish: dish,
+                          dishId: dishId,
+                          allergenName: allergenName,
+                        );
+                  },
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: theme.dividerColor.withValues(alpha: 0.5)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.info_outline, size: 18, color: AppColors.orange),
-                    const SizedBox(width: 8),
-                    Text(
-                      a.name ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.orange : theme.cardTheme.color,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? AppColors.orange : theme.dividerColor.withValues(alpha: 0.5),
+                        width: isSelected ? 2 : 1,
+                      ),
                     ),
-                  ],
-                ),
-              )).toList(),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isSelected ? Icons.warning_amber_rounded : Icons.info_outline,
+                          size: 18,
+                          color: isSelected ? Colors.white : AppColors.orange,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          allergenName,
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            fontSize: 14,
+                            color: isSelected ? Colors.white : theme.textTheme.bodyLarge?.color,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         );

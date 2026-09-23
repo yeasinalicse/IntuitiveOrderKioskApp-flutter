@@ -23,14 +23,14 @@ class RestaurantAppDataNotifier extends AsyncNotifier<RestaurantAppDataModel> {
     state = const AsyncValue.loading();
     try {
       final repository = ref.read(restaurantRepositoryProvider);
-      var data = await repository.getApplicationData();
+      var applicationData = await repository.getApplicationData();
 
       bool terminalFound = false;
       final deviceId = await DeviceInfoUtil.getDeviceId();
 
       if (deviceId != null) {
         TerminalModel? matchingTerminal;
-        for (final terminal in data.terminalList) {
+        for (final terminal in applicationData.terminalList) {
           if (terminal.computer_Name == deviceId) {
             matchingTerminal = terminal;
             break;
@@ -39,7 +39,7 @@ class RestaurantAppDataNotifier extends AsyncNotifier<RestaurantAppDataModel> {
 
         if (matchingTerminal != null && matchingTerminal.id != null) {
           await ref.read(localStorageProvider).saveTerminalId(matchingTerminal.id!);
-          data = data.copyWith(workingTerminal: matchingTerminal);
+          applicationData = applicationData.copyWith(workingTerminal: matchingTerminal);
           terminalFound = true;
         }
       }
@@ -51,7 +51,7 @@ class RestaurantAppDataNotifier extends AsyncNotifier<RestaurantAppDataModel> {
       bool kioskUserFound = false;
       final kioskIdentifier = AppStrings.kiosk.toLowerCase();
 
-      for (final user in data.userList) {
+      for (final user in applicationData.userList) {
         final isKiosk = (user.full_name?.toLowerCase() == kioskIdentifier) ||
             (user.user_name?.toLowerCase() == kioskIdentifier) ||
             (user.user_type?.toLowerCase() == kioskIdentifier) ||
@@ -68,14 +68,14 @@ class RestaurantAppDataNotifier extends AsyncNotifier<RestaurantAppDataModel> {
         _showKioskUserNotFoundPopup();
       }
 
-      for(final orderPolicy in data.activeOrderPolicy){
+      for(final orderPolicy in applicationData.activeOrderPolicy){
         if(orderPolicy.name == AppStrings.quickOrder){
           await ref.read(localStorageProvider).saveQuickOrderPolicyId(orderPolicy.id!);
         }
       }
 
-      state = AsyncValue.data(data);
-      return data;
+      state = AsyncValue.data(applicationData);
+      return applicationData;
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
       rethrow;

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CategoryState {
 
- List<CategoryModel> get categories; int get selectedCategoryIndex; CategoryModel? get selectedCategory;
+ List<CategoryModel> get categories; List<CategoryModel> get allCategories; List<DishSubcategoryModel> get subcategories; int get selectedCategoryIndex; CategoryModel? get selectedCategory; MenuTypeFilter get selectedFilter;
 /// Create a copy of CategoryState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +27,20 @@ $CategoryStateCopyWith<CategoryState> get copyWith => _$CategoryStateCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as CategoryState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryState&&const DeepCollectionEquality().equals(other.categories, _this.categories)&&(identical(other.selectedCategoryIndex, _this.selectedCategoryIndex) || other.selectedCategoryIndex == _this.selectedCategoryIndex)&&(identical(other.selectedCategory, _this.selectedCategory) || other.selectedCategory == _this.selectedCategory));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CategoryState&&const DeepCollectionEquality().equals(other.categories, _this.categories)&&const DeepCollectionEquality().equals(other.allCategories, _this.allCategories)&&const DeepCollectionEquality().equals(other.subcategories, _this.subcategories)&&(identical(other.selectedCategoryIndex, _this.selectedCategoryIndex) || other.selectedCategoryIndex == _this.selectedCategoryIndex)&&(identical(other.selectedCategory, _this.selectedCategory) || other.selectedCategory == _this.selectedCategory)&&(identical(other.selectedFilter, _this.selectedFilter) || other.selectedFilter == _this.selectedFilter));
 }
 
 
 @override
 int get hashCode {
   final _this = this as CategoryState;
-  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.categories),_this.selectedCategoryIndex,_this.selectedCategory);
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.categories),const DeepCollectionEquality().hash(_this.allCategories),const DeepCollectionEquality().hash(_this.subcategories),_this.selectedCategoryIndex,_this.selectedCategory,_this.selectedFilter);
 }
 
 @override
 String toString() {
   final _this = this as CategoryState;
-  return 'CategoryState(categories: ${_this.categories}, selectedCategoryIndex: ${_this.selectedCategoryIndex}, selectedCategory: ${_this.selectedCategory})';
+  return 'CategoryState(categories: ${_this.categories}, allCategories: ${_this.allCategories}, subcategories: ${_this.subcategories}, selectedCategoryIndex: ${_this.selectedCategoryIndex}, selectedCategory: ${_this.selectedCategory}, selectedFilter: ${_this.selectedFilter})';
 }
 
 
@@ -51,7 +51,7 @@ abstract mixin class $CategoryStateCopyWith<$Res>  {
   factory $CategoryStateCopyWith(CategoryState value, $Res Function(CategoryState) _then) = _$CategoryStateCopyWithImpl;
 @useResult
 $Res call({
- List<CategoryModel> categories, int selectedCategoryIndex, CategoryModel? selectedCategory
+ List<CategoryModel> categories, List<CategoryModel> allCategories, List<DishSubcategoryModel> subcategories, int selectedCategoryIndex, CategoryModel? selectedCategory, MenuTypeFilter selectedFilter
 });
 
 
@@ -68,12 +68,15 @@ class _$CategoryStateCopyWithImpl<$Res>
 
 /// Create a copy of CategoryState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? categories = null,Object? selectedCategoryIndex = null,Object? selectedCategory = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? categories = null,Object? allCategories = null,Object? subcategories = null,Object? selectedCategoryIndex = null,Object? selectedCategory = freezed,Object? selectedFilter = null,}) {
   return _then(CategoryState(
 categories: null == categories ? _self.categories : categories // ignore: cast_nullable_to_non_nullable
-as List<CategoryModel>,selectedCategoryIndex: null == selectedCategoryIndex ? _self.selectedCategoryIndex : selectedCategoryIndex // ignore: cast_nullable_to_non_nullable
+as List<CategoryModel>,allCategories: null == allCategories ? _self.allCategories : allCategories // ignore: cast_nullable_to_non_nullable
+as List<CategoryModel>,subcategories: null == subcategories ? _self.subcategories : subcategories // ignore: cast_nullable_to_non_nullable
+as List<DishSubcategoryModel>,selectedCategoryIndex: null == selectedCategoryIndex ? _self.selectedCategoryIndex : selectedCategoryIndex // ignore: cast_nullable_to_non_nullable
 as int,selectedCategory: freezed == selectedCategory ? _self.selectedCategory : selectedCategory // ignore: cast_nullable_to_non_nullable
-as CategoryModel?,
+as CategoryModel?,selectedFilter: null == selectedFilter ? _self.selectedFilter : selectedFilter // ignore: cast_nullable_to_non_nullable
+as MenuTypeFilter,
   ));
 }
 /// Create a copy of CategoryState
@@ -170,10 +173,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<CategoryModel> categories,  int selectedCategoryIndex,  CategoryModel? selectedCategory)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<CategoryModel> categories,  List<CategoryModel> allCategories,  List<DishSubcategoryModel> subcategories,  int selectedCategoryIndex,  CategoryModel? selectedCategory,  MenuTypeFilter selectedFilter)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CategoryState() when $default != null:
-return $default(_that.categories,_that.selectedCategoryIndex,_that.selectedCategory);case _:
+return $default(_that.categories,_that.allCategories,_that.subcategories,_that.selectedCategoryIndex,_that.selectedCategory,_that.selectedFilter);case _:
   return orElse();
 
 }
@@ -191,10 +194,10 @@ return $default(_that.categories,_that.selectedCategoryIndex,_that.selectedCateg
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<CategoryModel> categories,  int selectedCategoryIndex,  CategoryModel? selectedCategory)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<CategoryModel> categories,  List<CategoryModel> allCategories,  List<DishSubcategoryModel> subcategories,  int selectedCategoryIndex,  CategoryModel? selectedCategory,  MenuTypeFilter selectedFilter)  $default,) {final _that = this;
 switch (_that) {
 case _CategoryState():
-return $default(_that.categories,_that.selectedCategoryIndex,_that.selectedCategory);case _:
+return $default(_that.categories,_that.allCategories,_that.subcategories,_that.selectedCategoryIndex,_that.selectedCategory,_that.selectedFilter);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +214,10 @@ return $default(_that.categories,_that.selectedCategoryIndex,_that.selectedCateg
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<CategoryModel> categories,  int selectedCategoryIndex,  CategoryModel? selectedCategory)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<CategoryModel> categories,  List<CategoryModel> allCategories,  List<DishSubcategoryModel> subcategories,  int selectedCategoryIndex,  CategoryModel? selectedCategory,  MenuTypeFilter selectedFilter)?  $default,) {final _that = this;
 switch (_that) {
 case _CategoryState() when $default != null:
-return $default(_that.categories,_that.selectedCategoryIndex,_that.selectedCategory);case _:
+return $default(_that.categories,_that.allCategories,_that.subcategories,_that.selectedCategoryIndex,_that.selectedCategory,_that.selectedFilter);case _:
   return null;
 
 }
@@ -226,7 +229,7 @@ return $default(_that.categories,_that.selectedCategoryIndex,_that.selectedCateg
 
 
 class _CategoryState implements CategoryState {
-  const _CategoryState({ List<CategoryModel> categories = const [], this.selectedCategoryIndex = 0, this.selectedCategory}): _categories = categories;
+  const _CategoryState({ List<CategoryModel> categories = const [],  List<CategoryModel> allCategories = const [],  List<DishSubcategoryModel> subcategories = const [], this.selectedCategoryIndex = 0, this.selectedCategory, this.selectedFilter = MenuTypeFilter.food}): _categories = categories,_allCategories = allCategories,_subcategories = subcategories;
   
 
  final  List<CategoryModel> _categories;
@@ -236,8 +239,23 @@ class _CategoryState implements CategoryState {
   return EqualUnmodifiableListView(_categories);
 }
 
+ final  List<CategoryModel> _allCategories;
+@override@JsonKey() List<CategoryModel> get allCategories {
+  if (_allCategories is EqualUnmodifiableListView) return _allCategories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_allCategories);
+}
+
+ final  List<DishSubcategoryModel> _subcategories;
+@override@JsonKey() List<DishSubcategoryModel> get subcategories {
+  if (_subcategories is EqualUnmodifiableListView) return _subcategories;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_subcategories);
+}
+
 @override@JsonKey() final  int selectedCategoryIndex;
 @override final  CategoryModel? selectedCategory;
+@override@JsonKey() final  MenuTypeFilter selectedFilter;
 
 /// Create a copy of CategoryState
 /// with the given fields replaced by the non-null parameter values.
@@ -249,18 +267,18 @@ _$CategoryStateCopyWith<_CategoryState> get copyWith => __$CategoryStateCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryState&&const DeepCollectionEquality().equals(other.categories, _categories)&&(identical(other.selectedCategoryIndex, selectedCategoryIndex) || other.selectedCategoryIndex == selectedCategoryIndex)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CategoryState&&const DeepCollectionEquality().equals(other.categories, _categories)&&const DeepCollectionEquality().equals(other.allCategories, _allCategories)&&const DeepCollectionEquality().equals(other.subcategories, _subcategories)&&(identical(other.selectedCategoryIndex, selectedCategoryIndex) || other.selectedCategoryIndex == selectedCategoryIndex)&&(identical(other.selectedCategory, selectedCategory) || other.selectedCategory == selectedCategory)&&(identical(other.selectedFilter, selectedFilter) || other.selectedFilter == selectedFilter));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_categories),selectedCategoryIndex,selectedCategory);
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_categories),const DeepCollectionEquality().hash(_allCategories),const DeepCollectionEquality().hash(_subcategories),selectedCategoryIndex,selectedCategory,selectedFilter);
 }
 
 @override
 String toString() {
-    return 'CategoryState(categories: $categories, selectedCategoryIndex: $selectedCategoryIndex, selectedCategory: $selectedCategory)';
+    return 'CategoryState(categories: $categories, allCategories: $allCategories, subcategories: $subcategories, selectedCategoryIndex: $selectedCategoryIndex, selectedCategory: $selectedCategory, selectedFilter: $selectedFilter)';
 }
 
 
@@ -271,7 +289,7 @@ abstract mixin class _$CategoryStateCopyWith<$Res> implements $CategoryStateCopy
   factory _$CategoryStateCopyWith(_CategoryState value, $Res Function(_CategoryState) _then) = __$CategoryStateCopyWithImpl;
 @override @useResult
 $Res call({
- List<CategoryModel> categories, int selectedCategoryIndex, CategoryModel? selectedCategory
+ List<CategoryModel> categories, List<CategoryModel> allCategories, List<DishSubcategoryModel> subcategories, int selectedCategoryIndex, CategoryModel? selectedCategory, MenuTypeFilter selectedFilter
 });
 
 
@@ -288,12 +306,15 @@ class __$CategoryStateCopyWithImpl<$Res>
 
 /// Create a copy of CategoryState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? categories = null,Object? selectedCategoryIndex = null,Object? selectedCategory = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? categories = null,Object? allCategories = null,Object? subcategories = null,Object? selectedCategoryIndex = null,Object? selectedCategory = freezed,Object? selectedFilter = null,}) {
   return _then(_CategoryState(
 categories: null == categories ? _self._categories : categories // ignore: cast_nullable_to_non_nullable
-as List<CategoryModel>,selectedCategoryIndex: null == selectedCategoryIndex ? _self.selectedCategoryIndex : selectedCategoryIndex // ignore: cast_nullable_to_non_nullable
+as List<CategoryModel>,allCategories: null == allCategories ? _self._allCategories : allCategories // ignore: cast_nullable_to_non_nullable
+as List<CategoryModel>,subcategories: null == subcategories ? _self._subcategories : subcategories // ignore: cast_nullable_to_non_nullable
+as List<DishSubcategoryModel>,selectedCategoryIndex: null == selectedCategoryIndex ? _self.selectedCategoryIndex : selectedCategoryIndex // ignore: cast_nullable_to_non_nullable
 as int,selectedCategory: freezed == selectedCategory ? _self.selectedCategory : selectedCategory // ignore: cast_nullable_to_non_nullable
-as CategoryModel?,
+as CategoryModel?,selectedFilter: null == selectedFilter ? _self.selectedFilter : selectedFilter // ignore: cast_nullable_to_non_nullable
+as MenuTypeFilter,
   ));
 }
 

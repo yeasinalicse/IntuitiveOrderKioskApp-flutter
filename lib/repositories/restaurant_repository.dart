@@ -5,6 +5,8 @@ import 'package:intuitiveorderkioskappflutter/core/utils/logger.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_restaurant_order_with_dish.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/add_dish_on_order_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/update_order_dish_allergens_request.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/void_dish_request.dart';
 
 class RestaurantRepository {
   final RestaurantRemoteDataSource _remoteDataSource;
@@ -47,6 +49,49 @@ class RestaurantRepository {
       return OrderResponseModel.fromJson(data);
     } catch (e) {
       logger.e('Error in saveUpdateOrderDishInstruction: $e');
+      rethrow;
+    }
+  }
+
+  Future<String?> getRestaurantDishImageById(int id) async {
+    try {
+      final res = await _remoteDataSource.getRestaurantDishImageById(id);
+      if (res != null && res['restaurant_dish_image'] != null) {
+        return res['restaurant_dish_image']['image_data'] as String?;
+      }
+      return null;
+    } catch (e) {
+      logger.e('Error in getRestaurantDishImageById: $e');
+      rethrow;
+    }
+  }
+
+  Future<OrderResponseModel> getRestaurantOrderById(Map<String, dynamic> request) async {
+    try {
+      final data = await _remoteDataSource.getRestaurantOrderById(request);
+      return OrderResponseModel.fromJson(data);
+    } catch (e) {
+      logger.e('Error in getRestaurantOrderById: $e');
+      rethrow;
+    }
+  }
+
+  Future<OrderResponseModel> updateOrderDishAllergens(UpdateOrderDishAllergensRequest request) async {
+    try {
+      final data = await _remoteDataSource.updateOrderDishAllergens(request);
+      return OrderResponseModel.fromJson(data);
+    } catch (e) {
+      logger.e('Error in updateOrderDishAllergens: $e');
+      rethrow;
+    }
+  }
+
+  Future<OrderResponseModel> voidDish(VoidDishRequest request) async {
+    try {
+      final data = await _remoteDataSource.voidDish(request);
+      return OrderResponseModel.fromJson(data);
+    } catch (e) {
+      logger.e('Error in voidDish: $e');
       rethrow;
     }
   }

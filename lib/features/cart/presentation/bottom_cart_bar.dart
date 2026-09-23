@@ -84,7 +84,7 @@ class BottomCartBar extends ConsumerWidget {
                     _buildEmptyState(screenWidth, screenHeight, theme)
                   else
                     SizedBox(
-                      height: 100,
+                      height: 115,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: cart.items.length,
@@ -201,43 +201,67 @@ class BottomCartBar extends ConsumerWidget {
   }
 
   Widget _buildOrderItem(BuildContext context, WidgetRef ref, OrderDishModel item, double screenWidth, ThemeData theme) {
+    final instructionsText = _getInstructionsText(item);
+
     return Container(
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            // Left Action Buttons
-            SizedBox(
-              width: 60,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        final restaurantData = ref.read(restaurantAppDataProvider).value;
-                        if (restaurantData == null) return;
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Left Action Buttons
+          SizedBox(
+            width: 55,
+            child: Column(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      final restaurantData = ref.read(restaurantAppDataProvider).value;
+                      if (restaurantData == null) return;
 
-                        final dish = restaurantData.dishsList.firstWhere(
-                          (d) => d.id == item.restaurant_dish_id,
-                          orElse: () => const DishModel(),
-                        );
+                      final dish = restaurantData.dishsList.firstWhere(
+                        (d) => d.id == item.restaurant_dish_id,
+                        orElse: () => const DishModel(),
+                      );
 
-                        if (dish.id == null) return;
+                      if (dish.id == null) return;
 
-                        final category = restaurantData.categoryList.firstWhere(
-                          (c) => c.id == dish.dish_category_id,
-                          orElse: () => const CategoryModel(),
-                        );
+                      // Set the selected dish in order management so instructions are applied to it
+                      ref.read(orderManagementProvider.notifier).setSelectedDish(item);
 
-                        final groupId = ref.read(getGroupIdProvider).getPrimaryGroupId(dish, category);
+                      // Check if we are already on the details page for this SAME dish
+                      final routerState = GoRouterState.of(context);
+                      final isCurrentlyOnDetails = routerState.matchedLocation == '/details';
+                      final currentExtra = routerState.extra as Map<String, dynamic>?;
+                      final currentDishId = currentExtra?['itemId']?.toString();
 
-                        // Set the selected dish in order management so instructions are applied to it
-                        ref.read(orderManagementProvider.notifier).setSelectedDish(item);
+                      if (isCurrentlyOnDetails && currentDishId == dish.id.toString()) {
+                        // Already on this dish's detail page, no need to push again
+                        return;
+                      }
 
+                      final category = restaurantData.categoryList.firstWhere(
+                        (c) => c.id == dish.dish_category_id,
+                        orElse: () => const CategoryModel(),
+                      );
+
+                      final groupId = ref.read(getGroupIdProvider).getPrimaryGroupId(dish, category);
+
+                      if (isCurrentlyOnDetails) {
+                        context.pushReplacement('/details', extra: {
+                          'dish': dish,
+                          'category': category.id != null ? category : null,
+                          'groupId': groupId,
+                          'itemId': dish.id.toString(),
+                          'productName': dish.name ?? '',
+                          'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
+                          'productImage': '',
+                        });
+                      } else {
                         context.push('/details', extra: {
                           'dish': dish,
                           'category': category.id != null ? category : null,
@@ -247,63 +271,112 @@ class BottomCartBar extends ConsumerWidget {
                           'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
                           'productImage': '',
                         });
-                      },
-                      child: Center(
-                        child: Text('EDIT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: theme.textTheme.bodyMedium?.color)),
-                      ),
+                      }
+                    },
+                    child: Center(
+                      child: Text('EDIT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: theme.textTheme.bodyMedium?.color)),
                     ),
                   ),
-                  Divider(height: 1, color: theme.dividerColor),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        // In a real app, you would call a server method to remove the dish
-                      },
-                      child: const Center(
-                        child: Text('Remove', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.primaryOrange)),
-                      ),
+                ),
+                Divider(height: 1, color: theme.dividerColor),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      ref.read(orderManagementProvider.notifier).voidDish(item);
+                    },
+                    child: const Center(
+                      child: Text('Remove', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.primaryOrange)),
                     ),
                   ),
+                ),
+              ],
+            ),
+          ),
+          VerticalDivider(width: 1, color: theme.dividerColor),
+          
+          // Item Details
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${item.dish_name} X${item.quantity}',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: theme.textTheme.bodyLarge?.color),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${AppStrings.currencySymbol}${(item.price ?? 0).toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.orange),
+                      ),
+                    ],
+                  ),
+                  if (instructionsText.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      '+ $instructionsText',
+                      style: const TextStyle(
+                        color: AppColors.primaryOrange,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ] else if (item.dish_description != null && item.dish_description!.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      item.dish_description!,
+                      style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
               ),
             ),
-            VerticalDivider(width: 1, color: theme.dividerColor),
-            
-            // Item Details
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${item.dish_name} X${item.quantity}',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.textTheme.bodyLarge?.color),
-                          ),
-                        ),
-                        Text(
-                          '${AppStrings.currencySymbol}${(item.price ?? 0).toStringAsFixed(2)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.orange),
-                        ),
-                      ],
-                    ),
-                    if (item.dish_description != null && item.dish_description!.isNotEmpty)
-                      Text(
-                        item.dish_description!,
-                        style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 12),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+  }
+
+  String _getInstructionsText(OrderDishModel item) {
+    List<String> result = [];
+
+    if (item.instructions.isNotEmpty) {
+      for (final ins in item.instructions) {
+        if (ins.instruction != null && ins.instruction!.trim().isNotEmpty) {
+          result.add(ins.instruction!.trim());
+        }
+      }
+    }
+
+    if (result.isEmpty && item.dish_instructions != null && item.dish_instructions!.trim().isNotEmpty) {
+      result.add(item.dish_instructions!.trim());
+    }
+
+    if (result.isEmpty && item.InstructionsList != null && item.InstructionsList!.isNotEmpty) {
+      for (final ins in item.InstructionsList!) {
+        if (ins is Map && ins['instruction'] != null && ins['instruction'].toString().trim().isNotEmpty) {
+          result.add(ins['instruction'].toString().trim());
+        } else if (ins != null && ins.toString().trim().isNotEmpty) {
+          result.add(ins.toString().trim());
+        }
+      }
+    }
+
+    return result.join(', ');
   }
 }
 

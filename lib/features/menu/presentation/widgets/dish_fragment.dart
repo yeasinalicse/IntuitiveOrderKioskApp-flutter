@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intuitiveorderkioskappflutter/core/constants/app_assets.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/category_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/dish_view_model.dart';
@@ -25,17 +25,6 @@ class DishFragment extends ConsumerWidget {
 
     final selectedCategory = categoryState.selectedCategory;
     final hasParent = parentDishId != null;
-
-    final demoImages = [
-      AppAssets.dish1,
-      AppAssets.dish2,
-      AppAssets.dish3,
-      AppAssets.dish4,
-      AppAssets.dish5,
-      AppAssets.dish6,
-      AppAssets.dish7,
-      AppAssets.dish8,
-    ];
 
     // Listen to save order state for showing feedback and extracting group_id
     ref.listen(orderManagementProvider, (previous, next) {
@@ -137,7 +126,6 @@ class DishFragment extends ConsumerWidget {
 
         final dishIndex = hasParent ? index - 1 : index;
         final dish = dishList[dishIndex];
-        final demoImage = demoImages[dishIndex % demoImages.length];
         return GestureDetector(
           onTap: () {
             if (dish.is_parent == true) {
@@ -177,12 +165,35 @@ class DishFragment extends ConsumerWidget {
                         ),
                       ),
                       const Spacer(),
-                      Image.asset(
-                        demoImage,
-                        height: 80,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) =>  Icon(Icons.fastfood, color: theme.textTheme.bodyMedium?.color, size: 80),
-                      ),
+                      dish.id == null
+                          ? Icon(Icons.fastfood, color: theme.textTheme.bodyMedium?.color, size: 80)
+                          : ref.watch(dishImageProvider(dish.id!)).when(
+                              data: (base64String) {
+                                if (base64String == null || base64String.isEmpty) {
+                                  return Icon(Icons.fastfood, color: theme.textTheme.bodyMedium?.color, size: 80);
+                                }
+                                try {
+                                  String pureBase64 = base64String.trim();
+                                  if (pureBase64.contains(',')) {
+                                    pureBase64 = pureBase64.split(',').last;
+                                  }
+                                  return Image.memory(
+                                    base64Decode(pureBase64),
+                                    height: 80,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.red, size: 80),
+                                  );
+                                } catch (e) {
+                                  return Icon(Icons.broken_image, color: Colors.red, size: 80);
+                                }
+                              },
+                              loading: () => const SizedBox(
+                                height: 80,
+                                width: 80,
+                                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                              ),
+                              error: (error, stackTrace) => Icon(Icons.broken_image, color: Colors.red, size: 80),
+                            ),
                       const Spacer(),
                       Text(
                         dish.name ?? '',

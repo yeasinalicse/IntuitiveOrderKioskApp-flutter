@@ -1,13 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
+import 'package:intuitiveorderkioskappflutter/providers/api_providers.dart';
 import 'category_view_model.dart';
 
 class DishParentNotifier extends Notifier<int?> {
   @override
   int? build() {
-    // Watch category changes to reset parent state
+    // Watch category changes or filter changes to reset parent state
     ref.watch(categoryProvider.select((s) => s.selectedCategoryIndex));
+    ref.watch(categoryProvider.select((s) => s.selectedFilter));
     return null;
   }
 
@@ -33,7 +35,8 @@ final dishProvider = Provider<List<DishModel>>((ref) {
     data: (data) {
       if (categoryState.categories.isEmpty) return [];
       
-      final selectedCategory = categoryState.categories[categoryState.selectedCategoryIndex];
+      final selectedCategory = categoryState.selectedCategory;
+      if (selectedCategory == null) return [];
 
       if (parentDishId == null) {
         // Show top-level dishes for this category
@@ -49,4 +52,9 @@ final dishProvider = Provider<List<DishModel>>((ref) {
     },
     orElse: () => [],
   );
+});
+
+final dishImageProvider = FutureProvider.family<String?, int>((ref, dishId) async {
+  final repository = ref.watch(restaurantRepositoryProvider);
+  return repository.getRestaurantDishImageById(dishId);
 });

@@ -1,18 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_assets.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
+import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/dish_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
 
-class WelcomeScreen extends StatefulWidget {
+class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
 
   @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
+  ConsumerState<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   Timer? _timer;
@@ -115,6 +119,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             alignment: const Alignment(0, -0.5),
             child: GestureDetector(
               onTap: () {
+                ref.read(orderManagementProvider.notifier).reset();
+                ref.read(cartProvider.notifier).clear();
+                ref.read(dishParentProvider.notifier).reset();
                 context.go('/menu');
               },
               child: Column(

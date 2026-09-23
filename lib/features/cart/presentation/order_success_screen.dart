@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
 
 class OrderSuccessScreen extends ConsumerStatefulWidget {
   const OrderSuccessScreen({super.key});
@@ -19,9 +20,10 @@ class _OrderSuccessScreenState extends ConsumerState<OrderSuccessScreen> {
   @override
   void initState() {
     super.initState();
-    // Clear cart immediately
+    // Clear cart and order state immediately
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(cartProvider.notifier).clear();
+      ref.read(orderManagementProvider.notifier).reset();
     });
 
     // Simulate printing process

@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
+import 'package:intuitiveorderkioskappflutter/core/router/app_router.dart';
+import 'package:intuitiveorderkioskappflutter/core/widgets/app_popups.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/bill_model.dart';
@@ -7,6 +10,8 @@ import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/s
 import 'package:intuitiveorderkioskappflutter/models/requests/save_restaurant_order_with_dish.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/add_dish_on_order_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/update_order_dish_allergens_request.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/void_dish_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/common/bags_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
@@ -24,7 +29,6 @@ final orderManagementProvider = StateNotifierProvider<OrderManagementNotifier, A
 class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseModel?>> {
   final Ref ref;
   late final restaurantAppData = ref.read(restaurantAppDataProvider).value;
-
   OrderManagementNotifier(this.ref) : super(const AsyncValue.data(null));
 
   Future<void> addToOrder(DishModel dish, {CategoryModel? category, int quantity = 1, double? totalPrice}) async {
@@ -38,6 +42,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
   }
 
   Future<void> saveOrderWithDish(DishModel dish, {CategoryModel? category, int quantity = 1, double? totalPrice}) async {
+    final previousState = state;
     state = const AsyncValue.loading();
     try {
       final terminalId = ref.read(localStorageProvider).getTerminalId();
@@ -173,9 +178,16 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
 
       final repository = ref.read(restaurantRepositoryProvider);
       final response = await repository.saveRestaurantOrderWithDish(request);
-      state = AsyncValue.data(response);
+      if (response.status_code == 200) {
+        state = AsyncValue.data(response);
+      } else {
+        state = previousState;
+        _showErrorPopup(response.message ?? 'Failed to save order (Status Code: ${response.status_code})');
+      }
     } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+      logger.e('Error saving order with dish: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
     }
   }
 
@@ -186,6 +198,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
       return;
     }
 
+    final previousState = state;
     state = const AsyncValue.loading();
     try {
       final terminalId = ref.read(localStorageProvider).getTerminalId();
@@ -271,11 +284,16 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
 
       final repository = ref.read(restaurantRepositoryProvider);
       final response = await repository.addDishOnOrder(request);
-      if(response.status_code == 200 && response.order != null){
+      if (response.status_code == 200 && response.order != null) {
         state = AsyncValue.data(response);
+      } else {
+        state = previousState;
+        _showErrorPopup(response.message ?? 'Failed to add dish to order (Status Code: ${response.status_code})');
       }
     } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+      logger.e('Error adding dish to order: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
     }
   }
 
@@ -283,15 +301,171 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null) return;
 
+    final previousState = state;
     try {
       final repository = ref.read(restaurantRepositoryProvider);
       final response = await repository.saveUpdateOrderDishInstruction(request);
       if (response.status_code == 200) {
-        state = AsyncValue.data(response);
+        _getRestaurantOrderById();
+      } else {
+        state = previousState;
+        _showErrorPopup(response.message ?? 'Failed to update instruction (Status Code: ${response.status_code})');
       }
     } catch (e, stack) {
-      logger.e('Error updating instruction: $e');
-      state = AsyncValue.error(e, stack);
+      logger.e('Error updating instruction: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
+    }
+  }
+
+  Future<void> updateOrderDishAllergens(UpdateOrderDishAllergensRequest request) async {
+    final currentOrderResponse = state.value;
+    if (currentOrderResponse == null) return;
+
+    final previousState = state;
+    try {
+      final repository = ref.read(restaurantRepositoryProvider);
+      final response = await repository.updateOrderDishAllergens(request);
+      if (response.status_code == 200) {
+        await _getRestaurantOrderById();
+      } else {
+        state = previousState;
+        _showErrorPopup(response.message ?? 'Failed to update allergens (Status Code: ${response.status_code})');
+      }
+    } catch (e, stack) {
+      logger.e('Error updating allergens: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
+    }
+  }
+
+  Future<void> toggleAllergen({
+    required DishModel dish,
+    required String dishId,
+    required String allergenName,
+  }) async {
+    final orderResponse = state.value;
+    if (orderResponse == null) {
+      _showErrorPopup('No active order found.');
+      return;
+    }
+
+    OrderDishModel? currentOrderDish;
+    if (orderResponse.selectedDish != null &&
+        (orderResponse.selectedDish!.restaurant_dish_id == dish.id ||
+            orderResponse.selectedDish!.id == dishId)) {
+      currentOrderDish = orderResponse.selectedDish;
+    } else if (orderResponse.orderDish.isNotEmpty) {
+      currentOrderDish = orderResponse.orderDish.cast<OrderDishModel?>().lastWhere(
+        (d) => d != null && (d.restaurant_dish_id == dish.id || d.id == dishId),
+        orElse: () => orderResponse.selectedDish ?? orderResponse.orderDish.last,
+      );
+    }
+
+    if (currentOrderDish == null || currentOrderDish.id == null) {
+      _showErrorPopup('No active dish found in order.');
+      return;
+    }
+
+    List<String> existingAllergens = [];
+    final currentDishAllergens = currentOrderDish.dish_allergens ?? dish.allergens;
+    if (currentDishAllergens != null && currentDishAllergens.isNotEmpty) {
+      existingAllergens = currentDishAllergens
+          .split('\n')
+          .where((e) => e.trim().isNotEmpty)
+          .toList();
+    }
+
+    final String allergenContent = "***Allergen Warning***$allergenName***";
+    if (existingAllergens.contains(allergenContent)) {
+      existingAllergens.remove(allergenContent);
+    } else {
+      existingAllergens.add(allergenContent);
+    }
+
+    final String allergenString = existingAllergens.join('\n');
+    final int userId = ref.read(localStorageProvider).getUserId() ?? 0;
+
+    final request = UpdateOrderDishAllergensRequest(
+      allergenString: allergenString,
+      orderDishId: currentOrderDish.id!,
+      orderId: orderResponse.order?.id ?? '',
+      userId: userId,
+      workingBillId: orderResponse.workingBill?.id ?? '',
+      orderPolicyName: AppStrings.quickOrder,
+    );
+
+    await updateOrderDishAllergens(request);
+  }
+
+  Future<void> voidDish(OrderDishModel dish) async {
+    final currentOrderResponse = state.value;
+    if (currentOrderResponse == null) {
+      logger.w('Cannot void dish: No active order in state.');
+      return;
+    }
+
+    final previousState = state;
+    state = const AsyncValue.loading();
+    try {
+      final terminalId = ref.read(localStorageProvider).getTerminalId() ?? 0;
+      final restaurantId = restaurantAppData?.restaurant?.id ?? 0;
+      final int userId = ref.read(localStorageProvider).getUserId() ?? 0;
+      final orderPolicyName = currentOrderResponse.orderPolicyName ?? AppStrings.quickOrder;
+
+      final request = VoidDishRequest(
+        orderDish: dish,
+        orderPolicyName: orderPolicyName,
+        userId: userId,
+        terminalId: terminalId,
+        restaurantId: restaurantId,
+      );
+
+      final repository = ref.read(restaurantRepositoryProvider);
+      final response = await repository.voidDish(request);
+      if (response.status_code == 200) {
+        if (response.order != null) {
+          state = AsyncValue.data(response);
+        } else {
+          await _getRestaurantOrderById();
+        }
+      } else {
+        state = previousState;
+        _showErrorPopup(response.message ?? 'Failed to void dish (Status Code: ${response.status_code})');
+      }
+    } catch (e, stack) {
+      logger.e('Error voiding dish: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
+    }
+  }
+
+  Future<void> _getRestaurantOrderById() async {
+    final targetOrderId = state.value?.order?.id;
+    if (targetOrderId == null) {
+      return;
+    }
+
+    final previousState = state;
+    try {
+      final request = {
+        "restaurantOrderID": targetOrderId,
+        "loadType": 0,
+        "orderPolicyName": AppStrings.quickOrder,
+      };
+
+      final repository = ref.read(restaurantRepositoryProvider);
+      final response = await repository.getRestaurantOrderById(request);
+      if (response.status_code == 200) {
+        state = AsyncValue.data(response);
+      } else {
+        state = previousState;
+        _showErrorPopup(response.message ?? 'Failed to get order details (Status Code: ${response.status_code})');
+      }
+    } catch (e, stack) {
+      logger.e('Error in getRestaurantOrderById: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
     }
   }
 
@@ -300,5 +474,35 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     if (currentResponse != null) {
       state = AsyncValue.data(currentResponse.copyWith(selectedDish: dish));
     }
+  }
+
+  void reset() {
+    state = const AsyncValue.data(null);
+  }
+
+  void _showErrorPopup(String message, {String title = 'Error'}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = AppRouter.navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        AppPopups.showMessage(
+          context,
+          title: title,
+          message: message,
+          icon: Icons.error_outline_rounded,
+          iconColor: Colors.redAccent,
+        );
+      }
+    });
+  }
+
+  String _getErrorMessage(dynamic error) {
+    if (error is Exception) {
+      final str = error.toString();
+      if (str.startsWith('Exception: ')) {
+        return str.substring('Exception: '.length);
+      }
+      return str;
+    }
+    return error.toString();
   }
 }

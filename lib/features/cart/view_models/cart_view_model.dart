@@ -39,6 +39,10 @@ class CartViewModel extends Notifier<CartState> {
     // but for now we just clear the local state.
     state = const CartState(items: []);
   }
+
+  Future<void> voidDish(OrderDishModel dish) async {
+    await ref.read(orderManagementProvider.notifier).voidDish(dish);
+  }
 }
 
 final cartProvider = NotifierProvider<CartViewModel, CartState>(() {
