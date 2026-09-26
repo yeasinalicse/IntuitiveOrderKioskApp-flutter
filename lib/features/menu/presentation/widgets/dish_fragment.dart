@@ -68,8 +68,11 @@ class DishFragment extends ConsumerWidget {
                   });
                 }
 
+                final dishsList = restaurantData?.dishsList ?? [];
+                final formattedName = lastAddedOrderDish.dish_name ?? originalDish.getFormattedName(dishsList);
+
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Added ${originalDish.name} to order')),
+                  SnackBar(content: Text('Added $formattedName to order')),
                 );
               }
             } else {
@@ -157,7 +160,8 @@ class DishFragment extends ConsumerWidget {
                       Align(
                         alignment: Alignment.topRight,
                         child: Text(
-                          '${AppStrings.currencySymbol}${dish.price?.toStringAsFixed(2) ?? '0.00'}',                          style: TextStyle(
+                          '${AppStrings.currencySymbol}${dish.price?.toStringAsFixed(2) ?? '0.00'}',                          
+                          style: TextStyle(
                             color: theme.textTheme.headlineLarge?.color,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,

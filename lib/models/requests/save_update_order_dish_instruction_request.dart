@@ -19,8 +19,8 @@ abstract class SaveUpdateOrderDishInstructionRequest with _$SaveUpdateOrderDishI
     @Default(0) int terminal_id,
     @Default(0) int user_id,
     @Default(0) int restaurant_order_policy_id,
-    @Default('') String selected_bill_id,
-    @Default('') String split_bill_by_guest_id,
+    String? selected_bill_id,
+    String? split_bill_by_guest_id,
   }) = _SaveUpdateOrderDishInstructionRequest;
 
   factory SaveUpdateOrderDishInstructionRequest.fromJson(Map<String, dynamic> json) =>

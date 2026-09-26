@@ -4,8 +4,6 @@ import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/instruction_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/instruction_model.dart';
-import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_instruction_model.dart';
-import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 
 class OptionGroupPopup extends ConsumerStatefulWidget {
@@ -27,10 +25,10 @@ class OptionGroupPopup extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<OptionGroupPopup> createState() => _DishDetailsPopupState();
+  ConsumerState<OptionGroupPopup> createState() => _OptionGroupPopupState();
 }
 
-class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
+class _OptionGroupPopupState extends ConsumerState<OptionGroupPopup> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -53,12 +51,12 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
     }
 
     return Container(
-      height: size.height * 0.7,
-      margin: const EdgeInsets.all(20), // Margin around the popup to show border
+      height: size.height * 09,
+      margin: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(40),
-        border: Border.all(color: AppColors.orange, width: 2), // High visibility border
+        border: Border.all(color: AppColors.orange, width: 2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),
@@ -68,7 +66,7 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(38), // Match border radius
+        borderRadius: BorderRadius.circular(38),
         child: Stack(
           children: [
             Column(
@@ -164,16 +162,14 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
     if (widget.groupId == null) return const SizedBox.shrink();
     final instructionState = ref.watch(instructionProvider(widget.groupId));
     final optionGroups = instructionState.optionGroups;
-    
+
     if (optionGroups.isEmpty) {
       return const Center(child: Text("No options available"));
     }
 
     final selectedOptionGroupId = instructionState.selectedOptionGroupId;
     final restaurantData = ref.watch(restaurantAppDataProvider).value;
-    final instructions = restaurantData?.instructionList
-        .where((ins) => ins.group_id == selectedOptionGroupId)
-        .toList() ?? [];
+    final instructions = restaurantData?.instructionList.where((ins) => ins.group_id == selectedOptionGroupId).toList() ?? [];
 
     return Column(
       children: [
@@ -223,9 +219,9 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
               }).toList(),
             ),
           ),
-        
+
         const SizedBox(height: 20),
-        
+
         // Instructions Grid
         Expanded(
           child: Padding(
@@ -247,19 +243,18 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
   }
 
   Widget _buildInstructionItem(InstructionModel ins, ThemeData theme) {
+    // Watch orderManagementProvider to reactively trigger rebuild when order is updated
+    ref.watch(orderManagementProvider);
+    final instructionNotifier = ref.read(instructionProvider(widget.groupId).notifier);
     final instructionState = ref.watch(instructionProvider(widget.groupId));
     final isSelectedInState = instructionState.selectedInstructionIds.contains(ins.id);
-
-    final selectedOrderDish = _getSelectedOrderDish(ref);
-    final quantityFromOrder = _getInstructionQuantityFromOrderResponse(selectedOrderDish, ins);
-
+    final quantityFromOrder = instructionNotifier.getInstructionQuantity(ins);
     final isSelected = isSelectedInState || quantityFromOrder > 0;
     final quantity = quantityFromOrder > 0 ? quantityFromOrder : (isSelectedInState ? 1 : 0);
-
     final hasPrice = ins.price != null && ins.price! > 0;
 
     return InkWell(
-      onTap: () => ref.read(instructionProvider(widget.groupId).notifier).toggleInstruction(ins.id!),
+      onTap: () => instructionNotifier.saveInstructionToOrder(ins.id!),
       borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -325,81 +320,6 @@ class _DishDetailsPopupState extends ConsumerState<OptionGroupPopup> {
         ),
       ),
     );
-  }
-
-  OrderDishModel? _getSelectedOrderDish(WidgetRef ref) {
-    final orderResponse = ref.watch(orderManagementProvider).value;
-    if (orderResponse == null) return null;
-
-    final selected = orderResponse.selectedDish;
-    if (selected != null) {
-      final matchInList = orderResponse.orderDish.firstWhere(
-        (d) => (selected.id != null && d.id == selected.id) ||
-               (selected.restaurant_dish_id != null && d.restaurant_dish_id == selected.restaurant_dish_id),
-        orElse: () => selected,
-      );
-      return matchInList;
-    }
-
-    if (orderResponse.orderDish.isNotEmpty) {
-      return orderResponse.orderDish.last;
-    }
-
-    return null;
-  }
-
-  OrderDishInstructionModel? _findMatchingInstruction(OrderDishModel? orderDish, InstructionModel ins) {
-    if (orderDish == null || orderDish.instructions.isEmpty) return null;
-
-    for (final orderIns in orderDish.instructions) {
-      if ((orderIns.dish_instruction_id != null && orderIns.dish_instruction_id == ins.id) ||
-          (orderIns.id != null && ins.id != null && orderIns.id.toString() == ins.id.toString())) {
-        return orderIns;
-      }
-      if (orderIns.instruction != null &&
-          ins.instruction != null &&
-          orderIns.instruction!.trim().toLowerCase() == ins.instruction!.trim().toLowerCase()) {
-        return orderIns;
-      }
-    }
-    return null;
-  }
-
-  int _getInstructionQuantityFromOrderResponse(OrderDishModel? orderDish, InstructionModel ins) {
-    if (orderDish == null) return 0;
-
-    final match = _findMatchingInstruction(orderDish, ins);
-    if (match != null) {
-      return match.quantity ?? 1;
-    }
-
-    if (orderDish.InstructionsList != null && orderDish.InstructionsList!.isNotEmpty) {
-      for (final item in orderDish.InstructionsList!) {
-        if (item is Map) {
-          final id = item['dish_instruction_id'] ?? item['instruction_id'] ?? item['id'];
-          final name = item['instruction']?.toString() ?? item['name']?.toString();
-          if ((id != null && (id == ins.id || id.toString() == ins.id.toString())) ||
-              (name != null && ins.instruction != null && name.trim().toLowerCase() == ins.instruction!.trim().toLowerCase())) {
-            final qty = item['quantity'];
-            return (qty is num) ? qty.toInt() : 1;
-          }
-        }
-      }
-    }
-
-    if (orderDish.dish_instructions != null && ins.instruction != null && ins.instruction!.trim().isNotEmpty) {
-      if (orderDish.dish_instructions!.toLowerCase().contains(ins.instruction!.trim().toLowerCase())) {
-        return 1;
-      }
-    }
-
-    if (orderDish.default_instruction != null && ins.instruction != null && ins.instruction!.trim().isNotEmpty) {
-      if (orderDish.default_instruction!.toLowerCase().contains(ins.instruction!.trim().toLowerCase())) {
-        return 1;
-      }
-    }
-
-    return 0;
   }
 
   Widget _buildFooter(ThemeData theme) {

@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SaveUpdateOrderDishInstructionRequest {
 
- int get instruction_id; String get instruction; double get instruction_price; String get order_dish_id; int get group_id; int get number_of_free_option; String get order_bill_id; String get order_policy_name; String get order_id; int get restaurant_id; int get terminal_id; int get user_id; int get restaurant_order_policy_id; String get selected_bill_id; String get split_bill_by_guest_id;
+ int get instruction_id; String get instruction; double get instruction_price; String get order_dish_id; int get group_id; int get number_of_free_option; String get order_bill_id; String get order_policy_name; String get order_id; int get restaurant_id; int get terminal_id; int get user_id; int get restaurant_order_policy_id; String? get selected_bill_id; String? get split_bill_by_guest_id;
 /// Create a copy of SaveUpdateOrderDishInstructionRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -54,7 +54,7 @@ abstract mixin class $SaveUpdateOrderDishInstructionRequestCopyWith<$Res>  {
   factory $SaveUpdateOrderDishInstructionRequestCopyWith(SaveUpdateOrderDishInstructionRequest value, $Res Function(SaveUpdateOrderDishInstructionRequest) _then) = _$SaveUpdateOrderDishInstructionRequestCopyWithImpl;
 @useResult
 $Res call({
- int instruction_id, String instruction, double instruction_price, String order_dish_id, int group_id, int number_of_free_option, String order_bill_id, String order_policy_name, String order_id, int restaurant_id, int terminal_id, int user_id, int restaurant_order_policy_id, String selected_bill_id, String split_bill_by_guest_id
+ int instruction_id, String instruction, double instruction_price, String order_dish_id, int group_id, int number_of_free_option, String order_bill_id, String order_policy_name, String order_id, int restaurant_id, int terminal_id, int user_id, int restaurant_order_policy_id, String? selected_bill_id, String? split_bill_by_guest_id
 });
 
 
@@ -71,7 +71,7 @@ class _$SaveUpdateOrderDishInstructionRequestCopyWithImpl<$Res>
 
 /// Create a copy of SaveUpdateOrderDishInstructionRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? instruction_id = null,Object? instruction = null,Object? instruction_price = null,Object? order_dish_id = null,Object? group_id = null,Object? number_of_free_option = null,Object? order_bill_id = null,Object? order_policy_name = null,Object? order_id = null,Object? restaurant_id = null,Object? terminal_id = null,Object? user_id = null,Object? restaurant_order_policy_id = null,Object? selected_bill_id = null,Object? split_bill_by_guest_id = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? instruction_id = null,Object? instruction = null,Object? instruction_price = null,Object? order_dish_id = null,Object? group_id = null,Object? number_of_free_option = null,Object? order_bill_id = null,Object? order_policy_name = null,Object? order_id = null,Object? restaurant_id = null,Object? terminal_id = null,Object? user_id = null,Object? restaurant_order_policy_id = null,Object? selected_bill_id = freezed,Object? split_bill_by_guest_id = freezed,}) {
   return _then(SaveUpdateOrderDishInstructionRequest(
 instruction_id: null == instruction_id ? _self.instruction_id : instruction_id // ignore: cast_nullable_to_non_nullable
 as int,instruction: null == instruction ? _self.instruction : instruction // ignore: cast_nullable_to_non_nullable
@@ -86,9 +86,9 @@ as String,restaurant_id: null == restaurant_id ? _self.restaurant_id : restauran
 as int,terminal_id: null == terminal_id ? _self.terminal_id : terminal_id // ignore: cast_nullable_to_non_nullable
 as int,user_id: null == user_id ? _self.user_id : user_id // ignore: cast_nullable_to_non_nullable
 as int,restaurant_order_policy_id: null == restaurant_order_policy_id ? _self.restaurant_order_policy_id : restaurant_order_policy_id // ignore: cast_nullable_to_non_nullable
-as int,selected_bill_id: null == selected_bill_id ? _self.selected_bill_id : selected_bill_id // ignore: cast_nullable_to_non_nullable
-as String,split_bill_by_guest_id: null == split_bill_by_guest_id ? _self.split_bill_by_guest_id : split_bill_by_guest_id // ignore: cast_nullable_to_non_nullable
-as String,
+as int,selected_bill_id: freezed == selected_bill_id ? _self.selected_bill_id : selected_bill_id // ignore: cast_nullable_to_non_nullable
+as String?,split_bill_by_guest_id: freezed == split_bill_by_guest_id ? _self.split_bill_by_guest_id : split_bill_by_guest_id // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -173,7 +173,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int instruction_id,  String instruction,  double instruction_price,  String order_dish_id,  int group_id,  int number_of_free_option,  String order_bill_id,  String order_policy_name,  String order_id,  int restaurant_id,  int terminal_id,  int user_id,  int restaurant_order_policy_id,  String selected_bill_id,  String split_bill_by_guest_id)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int instruction_id,  String instruction,  double instruction_price,  String order_dish_id,  int group_id,  int number_of_free_option,  String order_bill_id,  String order_policy_name,  String order_id,  int restaurant_id,  int terminal_id,  int user_id,  int restaurant_order_policy_id,  String? selected_bill_id,  String? split_bill_by_guest_id)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SaveUpdateOrderDishInstructionRequest() when $default != null:
 return $default(_that.instruction_id,_that.instruction,_that.instruction_price,_that.order_dish_id,_that.group_id,_that.number_of_free_option,_that.order_bill_id,_that.order_policy_name,_that.order_id,_that.restaurant_id,_that.terminal_id,_that.user_id,_that.restaurant_order_policy_id,_that.selected_bill_id,_that.split_bill_by_guest_id);case _:
@@ -194,7 +194,7 @@ return $default(_that.instruction_id,_that.instruction,_that.instruction_price,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int instruction_id,  String instruction,  double instruction_price,  String order_dish_id,  int group_id,  int number_of_free_option,  String order_bill_id,  String order_policy_name,  String order_id,  int restaurant_id,  int terminal_id,  int user_id,  int restaurant_order_policy_id,  String selected_bill_id,  String split_bill_by_guest_id)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int instruction_id,  String instruction,  double instruction_price,  String order_dish_id,  int group_id,  int number_of_free_option,  String order_bill_id,  String order_policy_name,  String order_id,  int restaurant_id,  int terminal_id,  int user_id,  int restaurant_order_policy_id,  String? selected_bill_id,  String? split_bill_by_guest_id)  $default,) {final _that = this;
 switch (_that) {
 case _SaveUpdateOrderDishInstructionRequest():
 return $default(_that.instruction_id,_that.instruction,_that.instruction_price,_that.order_dish_id,_that.group_id,_that.number_of_free_option,_that.order_bill_id,_that.order_policy_name,_that.order_id,_that.restaurant_id,_that.terminal_id,_that.user_id,_that.restaurant_order_policy_id,_that.selected_bill_id,_that.split_bill_by_guest_id);case _:
@@ -214,7 +214,7 @@ return $default(_that.instruction_id,_that.instruction,_that.instruction_price,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int instruction_id,  String instruction,  double instruction_price,  String order_dish_id,  int group_id,  int number_of_free_option,  String order_bill_id,  String order_policy_name,  String order_id,  int restaurant_id,  int terminal_id,  int user_id,  int restaurant_order_policy_id,  String selected_bill_id,  String split_bill_by_guest_id)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int instruction_id,  String instruction,  double instruction_price,  String order_dish_id,  int group_id,  int number_of_free_option,  String order_bill_id,  String order_policy_name,  String order_id,  int restaurant_id,  int terminal_id,  int user_id,  int restaurant_order_policy_id,  String? selected_bill_id,  String? split_bill_by_guest_id)?  $default,) {final _that = this;
 switch (_that) {
 case _SaveUpdateOrderDishInstructionRequest() when $default != null:
 return $default(_that.instruction_id,_that.instruction,_that.instruction_price,_that.order_dish_id,_that.group_id,_that.number_of_free_option,_that.order_bill_id,_that.order_policy_name,_that.order_id,_that.restaurant_id,_that.terminal_id,_that.user_id,_that.restaurant_order_policy_id,_that.selected_bill_id,_that.split_bill_by_guest_id);case _:
@@ -229,7 +229,7 @@ return $default(_that.instruction_id,_that.instruction,_that.instruction_price,_
 @JsonSerializable()
 
 class _SaveUpdateOrderDishInstructionRequest implements SaveUpdateOrderDishInstructionRequest {
-  const _SaveUpdateOrderDishInstructionRequest({this.instruction_id = 0, this.instruction = '', this.instruction_price = 0.0, required this.order_dish_id, this.group_id = 0, this.number_of_free_option = 0, this.order_bill_id = '', this.order_policy_name = '', this.order_id = '', this.restaurant_id = 0, this.terminal_id = 0, this.user_id = 0, this.restaurant_order_policy_id = 0, this.selected_bill_id = '', this.split_bill_by_guest_id = ''});
+  const _SaveUpdateOrderDishInstructionRequest({this.instruction_id = 0, this.instruction = '', this.instruction_price = 0.0, required this.order_dish_id, this.group_id = 0, this.number_of_free_option = 0, this.order_bill_id = '', this.order_policy_name = '', this.order_id = '', this.restaurant_id = 0, this.terminal_id = 0, this.user_id = 0, this.restaurant_order_policy_id = 0, this.selected_bill_id, this.split_bill_by_guest_id});
   factory _SaveUpdateOrderDishInstructionRequest.fromJson(Map<String, dynamic> json) => _$SaveUpdateOrderDishInstructionRequestFromJson(json);
 
 @override@JsonKey() final  int instruction_id;
@@ -245,8 +245,8 @@ class _SaveUpdateOrderDishInstructionRequest implements SaveUpdateOrderDishInstr
 @override@JsonKey() final  int terminal_id;
 @override@JsonKey() final  int user_id;
 @override@JsonKey() final  int restaurant_order_policy_id;
-@override@JsonKey() final  String selected_bill_id;
-@override@JsonKey() final  String split_bill_by_guest_id;
+@override final  String? selected_bill_id;
+@override final  String? split_bill_by_guest_id;
 
 /// Create a copy of SaveUpdateOrderDishInstructionRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -283,7 +283,7 @@ abstract mixin class _$SaveUpdateOrderDishInstructionRequestCopyWith<$Res> imple
   factory _$SaveUpdateOrderDishInstructionRequestCopyWith(_SaveUpdateOrderDishInstructionRequest value, $Res Function(_SaveUpdateOrderDishInstructionRequest) _then) = __$SaveUpdateOrderDishInstructionRequestCopyWithImpl;
 @override @useResult
 $Res call({
- int instruction_id, String instruction, double instruction_price, String order_dish_id, int group_id, int number_of_free_option, String order_bill_id, String order_policy_name, String order_id, int restaurant_id, int terminal_id, int user_id, int restaurant_order_policy_id, String selected_bill_id, String split_bill_by_guest_id
+ int instruction_id, String instruction, double instruction_price, String order_dish_id, int group_id, int number_of_free_option, String order_bill_id, String order_policy_name, String order_id, int restaurant_id, int terminal_id, int user_id, int restaurant_order_policy_id, String? selected_bill_id, String? split_bill_by_guest_id
 });
 
 
@@ -300,7 +300,7 @@ class __$SaveUpdateOrderDishInstructionRequestCopyWithImpl<$Res>
 
 /// Create a copy of SaveUpdateOrderDishInstructionRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? instruction_id = null,Object? instruction = null,Object? instruction_price = null,Object? order_dish_id = null,Object? group_id = null,Object? number_of_free_option = null,Object? order_bill_id = null,Object? order_policy_name = null,Object? order_id = null,Object? restaurant_id = null,Object? terminal_id = null,Object? user_id = null,Object? restaurant_order_policy_id = null,Object? selected_bill_id = null,Object? split_bill_by_guest_id = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? instruction_id = null,Object? instruction = null,Object? instruction_price = null,Object? order_dish_id = null,Object? group_id = null,Object? number_of_free_option = null,Object? order_bill_id = null,Object? order_policy_name = null,Object? order_id = null,Object? restaurant_id = null,Object? terminal_id = null,Object? user_id = null,Object? restaurant_order_policy_id = null,Object? selected_bill_id = freezed,Object? split_bill_by_guest_id = freezed,}) {
   return _then(_SaveUpdateOrderDishInstructionRequest(
 instruction_id: null == instruction_id ? _self.instruction_id : instruction_id // ignore: cast_nullable_to_non_nullable
 as int,instruction: null == instruction ? _self.instruction : instruction // ignore: cast_nullable_to_non_nullable
@@ -315,9 +315,9 @@ as String,restaurant_id: null == restaurant_id ? _self.restaurant_id : restauran
 as int,terminal_id: null == terminal_id ? _self.terminal_id : terminal_id // ignore: cast_nullable_to_non_nullable
 as int,user_id: null == user_id ? _self.user_id : user_id // ignore: cast_nullable_to_non_nullable
 as int,restaurant_order_policy_id: null == restaurant_order_policy_id ? _self.restaurant_order_policy_id : restaurant_order_policy_id // ignore: cast_nullable_to_non_nullable
-as int,selected_bill_id: null == selected_bill_id ? _self.selected_bill_id : selected_bill_id // ignore: cast_nullable_to_non_nullable
-as String,split_bill_by_guest_id: null == split_bill_by_guest_id ? _self.split_bill_by_guest_id : split_bill_by_guest_id // ignore: cast_nullable_to_non_nullable
-as String,
+as int,selected_bill_id: freezed == selected_bill_id ? _self.selected_bill_id : selected_bill_id // ignore: cast_nullable_to_non_nullable
+as String?,split_bill_by_guest_id: freezed == split_bill_by_guest_id ? _self.split_bill_by_guest_id : split_bill_by_guest_id // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

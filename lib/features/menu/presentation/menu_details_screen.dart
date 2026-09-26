@@ -145,7 +145,7 @@ class MenuDetailsScreen extends ConsumerWidget {
                 Text(
                   dishPrice,
                   style: TextStyle(
-                    color: theme.primaryColor,
+                    color: theme.buttonTheme.colorScheme?.primary,
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),

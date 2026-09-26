@@ -68,6 +68,9 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         }
       }
 
+      final dishsList = ref.read(restaurantAppDataProvider).value?.dishsList ?? [];
+      final formattedDishName = dish.getFormattedName(dishsList);
+
       final request = SaveRestaurantOrderWithDishRequest(
         order: OrderModel(
           id: orderId,
@@ -113,7 +116,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
           restaurant_order_id: orderId,
           dish_category_id: dish.dish_category_id,
           restaurant_dish_id: dish.id,
-          dish_name: dish.name,
+          dish_name: formattedDishName,
           dish_short_name: dish.short_name,
           alternative_dish_name: dish.alternative_dish_name,
           is_miscelenous: dish.is_dish_extras ?? false,
@@ -211,6 +214,9 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         total_amount: (currentOrderResponse.order!.total_amount ?? 0.0) + calculatedTotal,
       );
 
+      final dishsList = ref.read(restaurantAppDataProvider).value?.dishsList ?? [];
+      final formattedDishName = dish.getFormattedName(dishsList);
+
       final request = AddDishOnOrderRequest(
         order: updatedOrder,
         orderDish: OrderDishModel(
@@ -219,7 +225,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
             restaurant_order_id: updatedOrder.id,
             dish_category_id: dish.dish_category_id,
             restaurant_dish_id: dish.id,
-            dish_name: dish.name,
+            dish_name: formattedDishName,
             dish_short_name: dish.short_name,
             alternative_dish_name: dish.alternative_dish_name,
             is_miscelenous: dish.is_dish_extras ?? false,
@@ -339,11 +345,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     }
   }
 
-  Future<void> toggleAllergen({
-    required DishModel dish,
-    required String dishId,
-    required String allergenName,
-  }) async {
+  Future<void> toggleAllergen({required DishModel dish, required String dishId, required String allergenName}) async {
     final orderResponse = state.value;
     if (orderResponse == null) {
       _showErrorPopup('No active order found.');
@@ -351,9 +353,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     }
 
     OrderDishModel? currentOrderDish;
-    if (orderResponse.selectedDish != null &&
-        (orderResponse.selectedDish!.restaurant_dish_id == dish.id ||
-            orderResponse.selectedDish!.id == dishId)) {
+    if (orderResponse.selectedDish != null && (orderResponse.selectedDish!.restaurant_dish_id == dish.id || orderResponse.selectedDish!.id == dishId)) {
       currentOrderDish = orderResponse.selectedDish;
     } else if (orderResponse.orderDish.isNotEmpty) {
       currentOrderDish = orderResponse.orderDish.cast<OrderDishModel?>().lastWhere(
@@ -370,10 +370,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     List<String> existingAllergens = [];
     final currentDishAllergens = currentOrderDish.dish_allergens ?? dish.allergens;
     if (currentDishAllergens != null && currentDishAllergens.isNotEmpty) {
-      existingAllergens = currentDishAllergens
-          .split('\n')
-          .where((e) => e.trim().isNotEmpty)
-          .toList();
+      existingAllergens = currentDishAllergens.split('\n').where((e) => e.trim().isNotEmpty).toList();
     }
 
     final String allergenContent = "***Allergen Warning***$allergenName***";

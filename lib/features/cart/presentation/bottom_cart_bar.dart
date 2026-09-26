@@ -129,14 +129,14 @@ class BottomCartBar extends ConsumerWidget {
                             onPressed: () => ref.read(cartProvider.notifier).clear(),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 20),
-                              side: BorderSide(color: isDark ? AppColors.brownBorder : Colors.grey[400]!, width: 2),
+                              side: const BorderSide(color: Colors.redAccent, width: 2),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(50),
                               ),
                             ),
-                            child: Text(
+                            child: const Text(
                               'Cancel',
-                              style: TextStyle(color: theme.textTheme.bodyLarge?.color, fontSize: 18, fontWeight: FontWeight.bold),
+                              style: TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -250,6 +250,7 @@ class BottomCartBar extends ConsumerWidget {
                       );
 
                       final groupId = ref.read(getGroupIdProvider).getPrimaryGroupId(dish, category);
+                      final productName = dish.getFormattedName(restaurantData.dishsList);
 
                       if (isCurrentlyOnDetails) {
                         context.pushReplacement('/details', extra: {
@@ -257,7 +258,7 @@ class BottomCartBar extends ConsumerWidget {
                           'category': category.id != null ? category : null,
                           'groupId': groupId,
                           'itemId': dish.id.toString(),
-                          'productName': dish.name ?? '',
+                          'productName': productName,
                           'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
                           'productImage': '',
                         });
@@ -267,7 +268,7 @@ class BottomCartBar extends ConsumerWidget {
                           'category': category.id != null ? category : null,
                           'groupId': groupId,
                           'itemId': dish.id.toString(),
-                          'productName': dish.name ?? '',
+                          'productName': productName,
                           'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
                           'productImage': '',
                         });

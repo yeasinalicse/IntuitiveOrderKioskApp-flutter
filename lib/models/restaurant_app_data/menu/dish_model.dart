@@ -54,3 +54,24 @@ abstract class DishModel with _$DishModel {
 
   factory DishModel.fromJson(Map<String, dynamic> json) => _$DishModelFromJson(json);
 }
+
+extension DishModelX on DishModel {
+  String getFormattedName(List<DishModel> dishsList) {
+    final childName = name ?? dish_name ?? '';
+    if (parent_dish_id != null && parent_dish_id != 0) {
+      final parentDish = dishsList.firstWhere(
+        (d) => d.id == parent_dish_id,
+        orElse: () => const DishModel(),
+      );
+      final parentName = parentDish.name ?? parentDish.dish_name ?? '';
+      if (childName.isNotEmpty && parentName.isNotEmpty) {
+        return '$childName $parentName';
+      } else if (childName.isNotEmpty) {
+        return childName;
+      } else {
+        return parentName;
+      }
+    }
+    return childName;
+  }
+}

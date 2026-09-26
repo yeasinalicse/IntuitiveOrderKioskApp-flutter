@@ -24,8 +24,8 @@ _$SaveUpdateOrderDishInstructionRequestFromJson(Map<String, dynamic> json) =>
       user_id: (json['user_id'] as num?)?.toInt() ?? 0,
       restaurant_order_policy_id:
           (json['restaurant_order_policy_id'] as num?)?.toInt() ?? 0,
-      selected_bill_id: json['selected_bill_id'] as String? ?? '',
-      split_bill_by_guest_id: json['split_bill_by_guest_id'] as String? ?? '',
+      selected_bill_id: json['selected_bill_id'] as String?,
+      split_bill_by_guest_id: json['split_bill_by_guest_id'] as String?,
     );
 
 Map<String, dynamic> _$SaveUpdateOrderDishInstructionRequestToJson(
