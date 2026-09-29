@@ -26,13 +26,11 @@ class DishFragment extends ConsumerWidget {
     final selectedCategory = categoryState.selectedCategory;
     final hasParent = parentDishId != null;
 
-    // Listen to save order state for showing feedback and extracting group_id
+    // Listen to save order state for extracting group_id
     ref.listen(orderManagementProvider, (previous, next) {
       next.whenOrNull(
         error: (error, stack) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error saving order: $error')),
-          );
+          debugPrint('Error saving order: $error');
         },
         data: (data) {
           if (data != null) {
@@ -67,18 +65,7 @@ class DishFragment extends ConsumerWidget {
                     }
                   });
                 }
-
-                final dishsList = restaurantData?.dishsList ?? [];
-                final formattedName = lastAddedOrderDish.dish_name ?? originalDish.getFormattedName(dishsList);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Added $formattedName to order')),
-                );
               }
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Order saved successfully!')),
-              );
             }
           }
         },

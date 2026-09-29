@@ -11,11 +11,44 @@ import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/ca
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/get_group_id_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
 
-class BottomCartBar extends ConsumerWidget {
+class BottomCartBar extends ConsumerStatefulWidget {
   const BottomCartBar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BottomCartBar> createState() => _BottomCartBarState();
+}
+
+class _BottomCartBarState extends ConsumerState<BottomCartBar> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(cartProvider, (previous, next) {
+      final prevCount = previous?.items.length ?? 0;
+      final nextCount = next.items.length;
+      if (nextCount > prevCount) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            0.0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    });
+
     final cart = ref.watch(cartProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -86,6 +119,7 @@ class BottomCartBar extends ConsumerWidget {
                     SizedBox(
                       height: 115,
                       child: ListView.builder(
+                        controller: _scrollController,
                         scrollDirection: Axis.horizontal,
                         itemCount: cart.items.length,
                         itemBuilder: (context, index) {

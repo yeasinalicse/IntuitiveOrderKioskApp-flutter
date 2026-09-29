@@ -15,11 +15,9 @@ class OptionGroupPopup extends ConsumerStatefulWidget {
   });
 
   static Future<void> show(BuildContext context, {int? groupId}) {
-    return showModalBottomSheet(
+    return showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.6),
+      barrierColor: Colors.black.withValues(alpha: 0.75),
       builder: (context) => OptionGroupPopup(groupId: groupId),
     );
   }
@@ -37,108 +35,92 @@ class _OptionGroupPopupState extends ConsumerState<OptionGroupPopup> {
     if (widget.groupId != null) {
       ref.listen(instructionProvider(widget.groupId), (previous, next) {
         if (next.errorMessage != null && next.errorMessage != previous?.errorMessage) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(next.errorMessage!),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-            ),
-          );
           ref.read(instructionProvider(widget.groupId).notifier).clearError();
         }
       });
     }
 
-    return Container(
-      height: size.height * 09,
-      margin: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        borderRadius: BorderRadius.circular(40),
-        border: Border.all(color: AppColors.orange, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 25,
-            offset: const Offset(0, 10),
-          )
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(38),
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                _buildDragHandle(theme),
-                _buildHeader(theme),
-                Expanded(
-                  child: _buildBody(theme),
-                ),
-                _buildFooter(theme),
-              ],
-            ),
-            // Close button in top-right corner
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => Navigator.pop(context),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: theme.cardTheme.color,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.close_rounded,
-                      size: 20,
-                      color: theme.textTheme.bodyLarge?.color,
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Container(
+        width: size.width * 0.9,
+        height: size.height * 0.50,
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: BorderRadius.circular(40),
+          border: Border.all(color: AppColors.orange, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 25,
+              offset: const Offset(0, 10),
+            )
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(38),
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  const SizedBox(height: 20),
+                  _buildHeader(theme),
+                  Expanded(
+                    child: _buildBody(theme),
+                  ),
+                  _buildFooter(theme),
+                ],
+              ),
+              // Close button in top-right corner
+              Positioned(
+                top: 16,
+                right: 16,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.cardTheme.color,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 20,
+                        color: theme.textTheme.bodyLarge?.color,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDragHandle(ThemeData theme) {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      width: 50,
-      height: 5,
-      decoration: BoxDecoration(
-        color: theme.dividerColor.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(10),
       ),
     );
   }
 
   Widget _buildHeader(ThemeData theme) {
     return const Padding(
-      padding: EdgeInsets.fromLTRB(24, 10, 24, 20),
+      padding: EdgeInsets.fromLTRB(24, 8, 24, 12),
       child: Column(
         children: [
           Text(
             "Add on",
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 32,
+              fontSize: 28,
               fontWeight: FontWeight.w900,
               letterSpacing: -1,
               color: AppColors.orange,
@@ -149,7 +131,7 @@ class _OptionGroupPopupState extends ConsumerState<OptionGroupPopup> {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.grey,
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -192,7 +174,7 @@ class _OptionGroupPopupState extends ConsumerState<OptionGroupPopup> {
                       borderRadius: BorderRadius.circular(15),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
                           color: isSelected ? AppColors.orange : theme.cardTheme.color,
                           borderRadius: BorderRadius.circular(15),
@@ -220,7 +202,7 @@ class _OptionGroupPopupState extends ConsumerState<OptionGroupPopup> {
             ),
           ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
 
         // Instructions Grid
         Expanded(

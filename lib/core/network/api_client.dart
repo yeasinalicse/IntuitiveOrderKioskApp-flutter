@@ -29,56 +29,36 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          logger.i(
-            'REQUEST → ${options.method} ${options.uri}',
-          );
-
+          final buffer = StringBuffer('REQUEST → ${options.method} ${options.uri}');
           if (options.queryParameters.isNotEmpty) {
-            logger.d(
-              'QUERY → ${options.queryParameters}',
-            );
+            buffer.write('\nQUERY → ${options.queryParameters}');
           }
-
           if (options.data != null) {
-            logger.d(
-              'DATA → ${options.data}',
-            );
+            buffer.write('\nDATA → ${options.data}');
           }
-
+          logger.i(buffer.toString());
           handler.next(options);
         },
 
         onResponse: (response, handler) {
-          logger.i(
-            'RESPONSE → ${response.statusCode} '
-                '${response.requestOptions.uri}',
+          final buffer = StringBuffer(
+            'RESPONSE → ${response.statusCode} ${response.requestOptions.uri}',
           );
-
-          if (response.data.isNotEmpty) {
-            logger.d(
-              'RESPONSE DATA → ${response.data}',
-            );
+          if (response.data != null) {
+            buffer.write('\nDATA → ${response.data}');
           }
-
+          logger.i(buffer.toString());
           handler.next(response);
         },
 
         onError: (error, handler) {
-          logger.e(
-            'ERROR → ${error.response?.statusCode} '
-                '${error.requestOptions.uri}',
+          final buffer = StringBuffer(
+            'ERROR → ${error.response?.statusCode ?? 'N/A'} ${error.requestOptions.uri}\nMESSAGE → ${error.message}',
           );
-
-          logger.e(
-            'MESSAGE → ${error.message}',
-          );
-
           if (error.response?.data != null) {
-            logger.e(
-              'ERROR DATA → ${error.response?.data}',
-            );
+            buffer.write('\nDATA → ${error.response?.data}');
           }
-
+          logger.e(buffer.toString());
           handler.next(error);
         },
       ),
