@@ -12,6 +12,7 @@ import 'package:intuitiveorderkioskappflutter/models/requests/add_dish_on_order_
 import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/update_order_dish_allergens_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/void_dish_request.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/update_dish_quantity_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/common/bags_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
@@ -437,6 +438,121 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     }
   }
 
+  Future<void> increaseDishQuantityWithInstructionByOne(OrderDishModel dish) async {
+    final currentOrderResponse = state.value;
+    if (currentOrderResponse == null) {
+      logger.w('Cannot increase dish quantity: No active order in state.');
+      return;
+    }
+
+    final previousState = state;
+    try {
+      final terminalId = ref.read(localStorageProvider).getTerminalId() ?? 0;
+      final restaurantId = restaurantAppData?.restaurant?.id ?? 0;
+      final int userId = ref.read(localStorageProvider).getUserId() ?? 0;
+      final orderPolicyName = currentOrderResponse.orderPolicyName ?? AppStrings.quickOrder;
+
+      final request = UpdateDishQuantityRequest(
+        id: dish.id ?? '',
+        restaurantOrderId: dish.restaurant_order_id ?? currentOrderResponse.order?.id ?? '',
+        orderPolicy: orderPolicyName,
+        vatRate: (dish.vat_rate ?? 0.0).toDouble(),
+        orderBillId: currentOrderResponse.workingBill?.id ?? '',
+        price: dish.price ?? 0.0,
+        restaurantId: restaurantId,
+        terminalId: terminalId,
+        userId: userId,
+        quantity: dish.quantity ?? 1,
+      );
+
+      final repository = ref.read(restaurantRepositoryProvider);
+      final response = await repository.increaseDishQuantityWithInstructionByOne(request);
+      if (response.status_code == 200) {
+        if (response.order != null) {
+          state = AsyncValue.data(response);
+        } else {
+          await _getRestaurantOrderById();
+        }
+      } else {
+        state = previousState;
+        _showErrorPopup(response.message ?? 'Failed to increase dish quantity (Status Code: ${response.status_code})');
+      }
+    } catch (e, stack) {
+      logger.e('Error increasing dish quantity: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
+    }
+  }
+
+  Future<void> decreaseDishQuantityWithInstructionByOne(OrderDishModel dish) async {
+    final currentOrderResponse = state.value;
+    if (currentOrderResponse == null) {
+      logger.w('Cannot decrease dish quantity: No active order in state.');
+      return;
+    }
+
+    final previousState = state;
+    try {
+      final request = UpdateDishQuantityRequest(
+        id: dish.id ?? '',
+        restaurantOrderId: dish.restaurant_order_id ?? currentOrderResponse.order?.id ?? '',
+        orderPolicy: AppStrings.quickOrder,
+        vatRate: (dish.vat_rate ?? 0.0).toDouble(),
+        orderBillId: currentOrderResponse.workingBill?.id ?? '',
+        price: dish.price ?? 0.0,
+        restaurantId: restaurantAppData?.restaurant?.id ?? 0,
+        terminalId: ref.read(localStorageProvider).getTerminalId() ?? 0,
+        userId: ref.read(localStorageProvider).getUserId() ?? 0,
+        quantity: dish.quantity ?? 1,
+      );
+
+      final repository = ref.read(restaurantRepositoryProvider);
+      final response = await repository.decreaseDishQuantityWithInstructionByOne(request);
+      if (response.status_code == 200) {
+        if (response.order != null) {
+          state = AsyncValue.data(response);
+        } else {
+          await _getRestaurantOrderById();
+        }
+      } else {
+        state = previousState;
+        _showErrorPopup(response.message ?? 'Failed to decrease dish quantity (Status Code: ${response.status_code})');
+      }
+    } catch (e, stack) {
+      logger.e('Error decreasing dish quantity: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
+    }
+  }
+
+  Future<void> updateOrderDishInstructionQuantity(UpdateDishQuantityRequest request) async {
+    final currentOrderResponse = state.value;
+    if (currentOrderResponse == null) {
+      logger.w('Cannot update instruction quantity: No active order in state.');
+      return;
+    }
+    final previousState = state;
+    try {
+      final repository = ref.read(restaurantRepositoryProvider);
+      final response = await repository.updateOrderDishInstructionQuantity(request);
+      if (response.status_code == 200) {
+        if (response.order != null) {
+          state = AsyncValue.data(response);
+        } else {
+          await _getRestaurantOrderById();
+        }
+      }
+      else {
+        state = previousState;
+        _showErrorPopup(response.message ?? 'Failed to update instruction quantity (Status Code: ${response.status_code})');
+      }
+    } catch (e, stack) {
+      logger.e('Error updating instruction quantity: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
+    }
+  }
+
   Future<void> _getRestaurantOrderById() async {
     final targetOrderId = state.value?.order?.id;
     if (targetOrderId == null) {
@@ -473,7 +589,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     }
   }
 
-  void reset() {
+  void resetOrder() {
     state = const AsyncValue.data(null);
   }
 

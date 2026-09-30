@@ -119,7 +119,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             alignment: const Alignment(0, -0.5),
             child: GestureDetector(
               onTap: () {
-                ref.read(orderManagementProvider.notifier).reset();
+                ref.read(orderManagementProvider.notifier).resetOrder();
                 ref.read(cartProvider.notifier).clear();
                 ref.read(dishParentProvider.notifier).reset();
                 context.go('/menu');

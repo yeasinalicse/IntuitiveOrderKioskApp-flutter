@@ -7,6 +7,7 @@ import 'package:intuitiveorderkioskappflutter/models/requests/add_dish_on_order_
 import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/update_order_dish_allergens_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/void_dish_request.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/update_dish_quantity_request.dart';
 
 class RestaurantRepository {
   final RestaurantRemoteDataSource _remoteDataSource;
@@ -92,6 +93,36 @@ class RestaurantRepository {
       return OrderResponseModel.fromJson(data);
     } catch (e) {
       logger.e('Error in voidDish: $e');
+      rethrow;
+    }
+  }
+
+  Future<OrderResponseModel> increaseDishQuantityWithInstructionByOne(UpdateDishQuantityRequest request) async {
+    try {
+      final data = await _remoteDataSource.increaseDishQuantityWithInstructionByOne(request);
+      return OrderResponseModel.fromJson(data);
+    } catch (e) {
+      logger.e('Error in increaseDishQuantityWithInstructionByOne: $e');
+      rethrow;
+    }
+  }
+
+  Future<OrderResponseModel> decreaseDishQuantityWithInstructionByOne(UpdateDishQuantityRequest request) async {
+    try {
+      final data = await _remoteDataSource.decreaseDishQuantityWithInstructionByOne(request);
+      return OrderResponseModel.fromJson(data);
+    } catch (e) {
+      logger.e('Error in decreaseDishQuantityWithInstructionByOne: $e');
+      rethrow;
+    }
+  }
+
+  Future<OrderResponseModel> updateOrderDishInstructionQuantity(UpdateDishQuantityRequest request) async {
+    try {
+      final data = await _remoteDataSource.updateOrderDishInstructionQuantity(request);
+      return OrderResponseModel.fromJson(data);
+    } catch (e) {
+      logger.e('Error in updateOrderDishInstructionQuantity: $e');
       rethrow;
     }
   }

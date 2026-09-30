@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intuitiveorderkioskappflutter/core/enums/enums.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/category_view_model.dart';
 
@@ -50,9 +51,7 @@ class CategoryFragment extends ConsumerWidget {
           child: categoryState.categories.isEmpty
               ? Center(
                   child: Text(
-                    categoryState.selectedFilter == MenuTypeFilter.drink
-                        ? 'No drink categories available'
-                        : 'No food categories available',
+                    categoryState.selectedFilter == MenuTypeFilter.drink ? 'No drink categories available' : 'No food categories available',
                     style: TextStyle(
                       color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                       fontSize: 14,
@@ -78,9 +77,7 @@ class CategoryFragment extends ConsumerWidget {
                               margin: const EdgeInsets.symmetric(horizontal: 4),
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: isSelected
-                                    ? (isDark ? AppColors.white : AppColors.black)
-                                    : AppColors.orange,
+                                color: isSelected ? (isDark ? AppColors.white : AppColors.black) : AppColors.orange,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: Colors.black12),
                               ),

@@ -28,6 +28,9 @@ class DishFragment extends ConsumerWidget {
 
     // Listen to save order state for extracting group_id
     ref.listen(orderManagementProvider, (previous, next) {
+      final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
+      if (!isCurrentRoute) return;
+
       next.whenOrNull(
         error: (error, stack) {
           debugPrint('Error saving order: $error');

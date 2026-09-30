@@ -144,10 +144,10 @@ class _OptionGroupPopupState extends ConsumerState<OptionGroupPopup> {
     if (widget.groupId == null) return const SizedBox.shrink();
     final instructionState = ref.watch(instructionProvider(widget.groupId));
     final optionGroups = instructionState.optionGroups;
-
-    if (optionGroups.isEmpty) {
-      return const Center(child: Text("No options available"));
-    }
+    //
+    // if (optionGroups.isEmpty) {
+    //   return const Center(child: Text("No options available"));
+    // }
 
     final selectedOptionGroupId = instructionState.selectedOptionGroupId;
     final restaurantData = ref.watch(restaurantAppDataProvider).value;

@@ -8,4 +8,8 @@ class ApiConstants {
   static const String getRestaurantOrderByID = '/GetRestaurantOrderByID';
   static const String updateOrderDishAllergens = '/UpdateOrderDishAllergens';
   static const String voidDish = '/VoidDish';
+  static const String increaseDishQuantityWithInstructionByOne = '/IncreaseDishQuantityWithInstructionByOne';
+  static const String decreaseOrDeleteDishQuantityWithInstructionByOne = '/DecreaseOrDeleteDishQuantityWithInstructionByOne';
+  static const String deleteRestaurantOrderDishInstructionAndGetOrder = '/DeleteRestaurantOrderDishInstructionAndGetOrder';
+  static const String updateOrderDishInstructionQuantity = '/UpdateOrderDishInstructionQuantity';
 }

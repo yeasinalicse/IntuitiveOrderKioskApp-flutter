@@ -5,6 +5,7 @@ import 'package:intuitiveorderkioskappflutter/models/requests/add_dish_on_order_
 import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/update_order_dish_allergens_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/void_dish_request.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/update_dish_quantity_request.dart';
 
 class RestaurantRemoteDataSource {
   final ApiClient _apiClient;
@@ -100,6 +101,42 @@ class RestaurantRemoteDataSource {
       return response.data;
     } else {
       throw Exception('Failed to void dish: ${response.statusCode}');
+    }
+  }
+
+  Future<dynamic> increaseDishQuantityWithInstructionByOne(UpdateDishQuantityRequest request) async {
+    final response = await _apiClient.post(
+      ApiConstants.increaseDishQuantityWithInstructionByOne,
+      data: request.toJson(),
+    );
+    if (response.statusCode == 200) {
+      return response.data;
+    } else {
+      throw Exception('Failed to increase dish quantity: ${response.statusCode}');
+    }
+  }
+
+  Future<dynamic> decreaseDishQuantityWithInstructionByOne(UpdateDishQuantityRequest request) async {
+    final response = await _apiClient.post(
+      ApiConstants.decreaseOrDeleteDishQuantityWithInstructionByOne,
+      data: request.toJson(),
+    );
+    if (response.statusCode == 200) {
+      return response.data;
+    } else {
+      throw Exception('Failed to decrease dish quantity: ${response.statusCode}');
+    }
+  }
+
+  Future<dynamic> updateOrderDishInstructionQuantity(UpdateDishQuantityRequest request) async {
+    final response = await _apiClient.post(
+      ApiConstants.updateOrderDishInstructionQuantity,
+      data: request.toJson(),
+    );
+    if (response.statusCode == 200) {
+      return response.data;
+    } else {
+      throw Exception('Failed to update dish instruction quantity: ${response.statusCode}');
     }
   }
 }

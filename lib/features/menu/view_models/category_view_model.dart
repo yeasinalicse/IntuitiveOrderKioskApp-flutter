@@ -1,12 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:intuitiveorderkioskappflutter/core/enums/enums.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_subcategory_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 
 part 'category_view_model.freezed.dart';
-
-enum MenuTypeFilter { food, drink }
 
 @freezed
 abstract class CategoryState with _$CategoryState {
@@ -67,10 +66,7 @@ class CategoryViewModel extends Notifier<CategoryState> {
     }).toList();
   }
 
-  static bool _isDrinkCategory(
-    CategoryModel category,
-    List<DishSubcategoryModel> subcategories,
-  ) {
+  static bool _isDrinkCategory(CategoryModel category, List<DishSubcategoryModel> subcategories) {
     // 1. Check matching DishSubcategoryModel via restaurant_dish_sub_category_id
     if (category.restaurant_dish_sub_category_id != null && category.restaurant_dish_sub_category_id != 0) {
       final subcat = subcategories.firstWhere(

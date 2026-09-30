@@ -4,7 +4,6 @@ import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/ca
 
 class GetGroupIdViewModel {
   final Ref ref;
-
   GetGroupIdViewModel(this.ref);
 
   /// Extracts the primary group ID from the dish, or falls back to the provided category's group ID.

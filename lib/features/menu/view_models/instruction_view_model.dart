@@ -143,38 +143,6 @@ class InstructionNotifier extends FamilyNotifier<InstructionState, int?> {
     return null;
   }
 
-  /*Future<void> toggleInstruction(int instructionId) async {
-    final restaurantData = ref.read(restaurantAppDataProvider).value;
-    if (restaurantData == null) return;
-    final instruction = restaurantData.instructionList.firstWhere((ins) => ins.id == instructionId);
-    final groupId = instruction.group_id;
-    final optionGroup = restaurantData.optiongroupList.firstWhere((og) => og.id == groupId);
-    final currentIds = Set<int>.from(state.selectedInstructionIds);
-    final isAlreadySelected = isInstructionSelected(instruction);
-
-    if (isAlreadySelected || currentIds.contains(instructionId)) {
-      currentIds.remove(instructionId);
-      state = state.copyWith(selectedInstructionIds: currentIds, errorMessage: null);
-    } else {
-      // Check maximum constraint
-      final countInGroup = restaurantData.instructionList
-          .where((ins) => ins.group_id == groupId)
-          .where((ins) => currentIds.contains(ins.id) || getInstructionQuantity(ins) > 0)
-          .length;
-
-      if (optionGroup.maximum != null && optionGroup.maximum! > 0 && countInGroup >= optionGroup.maximum!) {
-        state = state.copyWith(errorMessage: "Maximum ${optionGroup.maximum} options allowed for ${optionGroup.name}");
-        return;
-      }
-
-      currentIds.add(instructionId);
-      state = state.copyWith(selectedInstructionIds: currentIds, errorMessage: null);
-    }
-
-    // Call API
-    await _saveInstructionToOrder(instruction, optionGroup);
-  }*/
-
   Future<void> saveInstructionToOrder(int instructionId) async {
     final orderState = ref.read(orderManagementProvider).value;
     final selectedDish = orderState?.selectedDish;
@@ -184,7 +152,6 @@ class InstructionNotifier extends FamilyNotifier<InstructionState, int?> {
     final instruction = restaurantData?.instructionList.firstWhere((ins) => ins.id == instructionId);
     final groupId = instruction?.group_id;
     final optionGroup = restaurantData?.optiongroupList.firstWhere((og) => og.id == groupId);
-
     final workingBillId = orderState?.workingBill?.id;
     final selectedBillId = (workingBillId != null && workingBillId.trim().isNotEmpty) ? workingBillId : null;
     final splitBillGuestId = orderState?.splitBillByGuest?.id;

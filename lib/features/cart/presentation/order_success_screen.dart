@@ -23,7 +23,7 @@ class _OrderSuccessScreenState extends ConsumerState<OrderSuccessScreen> {
     // Clear cart and order state immediately
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(cartProvider.notifier).clear();
-      ref.read(orderManagementProvider.notifier).reset();
+      ref.read(orderManagementProvider.notifier).resetOrder();
     });
 
     // Simulate printing process
