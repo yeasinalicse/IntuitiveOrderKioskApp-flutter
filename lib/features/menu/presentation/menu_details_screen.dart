@@ -5,7 +5,6 @@ import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/option_group_pop_up.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/dish_view_model.dart';
-import 'package:intuitiveorderkioskappflutter/features/menu/view_models/instruction_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
@@ -189,18 +188,20 @@ class MenuDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildOptionsSection(BuildContext context, WidgetRef ref, ThemeData theme) {
-    if (groupId == null) return const SizedBox.shrink();
-    
     final orderResponse = ref.watch(orderManagementProvider).value;
+
     OrderDishModel? currentOrderDish;
+
     if (orderResponse != null) {
       if (orderResponse.selectedDish != null && (orderResponse.selectedDish!.restaurant_dish_id == dish.id || orderResponse.selectedDish!.id == dishId)) {
         currentOrderDish = orderResponse.selectedDish;
-      } else if (orderResponse.orderDish.isNotEmpty) {
-        currentOrderDish = orderResponse.orderDish.cast<OrderDishModel?>().lastWhere(
-          (d) => d != null && (d.restaurant_dish_id == dish.id || d.id == dishId),
-          orElse: () => orderResponse.selectedDish ?? orderResponse.orderDish.last,
-        );
+      } else {
+        for (final orderDish in orderResponse.orderDish) {
+          if (orderDish.restaurant_dish_id == dish.id || orderDish.id == dishId) {
+            currentOrderDish = orderDish;
+            break;
+          }
+        }
       }
     }
 
@@ -310,8 +311,10 @@ class MenuDetailsScreen extends ConsumerWidget {
                         children: [
                           IconButton(
                             onPressed: () {
-                              if (ins.dish_instruction_id != null) {
-                                ref.read(instructionProvider(groupId).notifier).saveInstructionToOrder(ins.dish_instruction_id!);
+                              if(ins.quantity! > 1){
+                                ref.read(orderManagementProvider.notifier).decreaseOrderDishInstructionQuantity(ins);
+                              }else{
+                                ref.read(orderManagementProvider.notifier).deleteOrderDishInstruction(ins);
                               }
                             },
                             icon: const Icon(Icons.remove_rounded, color: AppColors.orange, size: 18),
@@ -331,9 +334,7 @@ class MenuDetailsScreen extends ConsumerWidget {
                           ),
                           IconButton(
                             onPressed: () {
-                              if (ins.dish_instruction_id != null) {
-                                ref.read(instructionProvider(groupId).notifier).saveInstructionToOrder(ins.dish_instruction_id!);
-                              }
+                              ref.read(orderManagementProvider.notifier).increaseOrderDishInstructionQuantity(ins);
                             },
                             icon: const Icon(Icons.add_rounded, color: AppColors.orange, size: 18),
                             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -424,9 +425,7 @@ class MenuDetailsScreen extends ConsumerWidget {
                   final a = data.allergenList[index];
                   final allergenName = a.name ?? '';
                   final allergenContent = "***Allergen Warning***$allergenName***";
-                  final isSelected = currentDishAllergens != null &&
-                      (currentDishAllergens.contains(allergenName) ||
-                       currentDishAllergens.split('\n').any((e) => e.trim().contains(allergenContent)));
+                  final isSelected = currentDishAllergens != null && (currentDishAllergens.contains(allergenName) || currentDishAllergens.split('\n').any((e) => e.trim().contains(allergenContent)));
 
                   return InkWell(
                     onTap: () {
@@ -512,10 +511,7 @@ class _DishPriceAndQuantityControl extends ConsumerWidget {
       }
     }
 
-    final currentQuantity = currentOrderDish?.quantity ??
-        (orderResponse?.orderDish
-            .where((d) => d.restaurant_dish_id == dish.id || d.id == dishId)
-            .fold<int>(0, (sum, d) => sum + (d.quantity ?? 1)) ?? 1);
+    final currentQuantity = currentOrderDish?.quantity ?? (orderResponse?.orderDish.where((d) => d.restaurant_dish_id == dish.id || d.id == dishId).fold<int>(0, (sum, d) => sum + (d.quantity ?? 1)) ?? 1);
 
     final String computedPriceText;
     if (currentOrderDish?.total_price != null) {

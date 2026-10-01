@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/core/router/app_router.dart';
 import 'package:intuitiveorderkioskappflutter/core/widgets/app_popups.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/UpdateOrderDishInstructionQuantityRequest.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/delete_restaurant_order_dish_Instruction_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_instruction_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/bill_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/selected_chair_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_restaurant_order_with_dish.dart';
@@ -525,29 +528,113 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     }
   }
 
-  Future<void> updateOrderDishInstructionQuantity(UpdateDishQuantityRequest request) async {
+  Future<void> increaseOrderDishInstructionQuantity(OrderDishInstructionModel instruction) async {
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null) {
-      logger.w('Cannot update instruction quantity: No active order in state.');
+      logger.w('Cannot increase instruction quantity: No active order in state.');
       return;
     }
+
     final previousState = state;
     try {
+      final request = UpdateOrderDishInstructionQuantityRequest(
+        instructionId: instruction.id!,
+        qty: instruction.quantity! + 1,
+        selectedDishId: currentOrderResponse.selectedDish?.id ?? '',
+        orderBillId: currentOrderResponse.workingBill?.id ?? '',
+        vatRate: 0.0,
+        orderId: currentOrderResponse.order?.id ?? '',
+        restaurantId: restaurantAppData?.restaurant?.id ?? 0,
+        userId: ref.read(localStorageProvider).getUserId() ?? 0,
+        terminalId: ref.read(localStorageProvider).getTerminalId() ?? 0,
+        orderPolicyName: AppStrings.quickOrder,
+      );
+
       final repository = ref.read(restaurantRepositoryProvider);
       final response = await repository.updateOrderDishInstructionQuantity(request);
       if (response.status_code == 200) {
-        if (response.order != null) {
-          state = AsyncValue.data(response);
-        } else {
-          await _getRestaurantOrderById();
-        }
-      }
-      else {
+        await _getRestaurantOrderById();
+      } else {
         state = previousState;
-        _showErrorPopup(response.message ?? 'Failed to update instruction quantity (Status Code: ${response.status_code})');
+        _showErrorPopup( response.message ?? 'Failed to increase instruction quantity ' '(Status Code: ${response.status_code})',
+        );
       }
     } catch (e, stack) {
-      logger.e('Error updating instruction quantity: $e', error: e, stackTrace: stack);
+      logger.e('Error increasing instruction quantity: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
+    }
+  }
+
+  Future<void> decreaseOrderDishInstructionQuantity(OrderDishInstructionModel instruction) async {
+    final currentOrderResponse = state.value;
+    if (currentOrderResponse == null) {
+      logger.w('Cannot decrease instruction quantity: No active order in state.');
+      return;
+    }
+
+    final previousState = state;
+    try {
+      final request = UpdateOrderDishInstructionQuantityRequest(
+        instructionId: instruction.id!,
+        qty: instruction.quantity! - 1,
+        selectedDishId: currentOrderResponse.selectedDish?.id ?? '',
+        orderBillId: currentOrderResponse.workingBill?.id ?? '',
+        vatRate: 0.0,
+        orderId: currentOrderResponse.order?.id ?? '',
+        restaurantId: restaurantAppData?.restaurant?.id ?? 0,
+        userId: ref.read(localStorageProvider).getUserId() ?? 0,
+        terminalId: ref.read(localStorageProvider).getTerminalId() ?? 0,
+        orderPolicyName: AppStrings.quickOrder,
+      );
+
+      final repository = ref.read(restaurantRepositoryProvider);
+      final response = await repository.updateOrderDishInstructionQuantity(request);
+      if (response.status_code == 200) {
+        await _getRestaurantOrderById();
+      } else {
+        state = previousState;
+        _showErrorPopup( response.message ?? 'Failed to increase instruction quantity ' '(Status Code: ${response.status_code})',
+        );
+      }
+    } catch (e, stack) {
+      logger.e('Error decreasing instruction quantity: $e', error: e, stackTrace: stack);
+      state = previousState;
+      _showErrorPopup(_getErrorMessage(e));
+    }
+  }
+
+  Future<void> deleteOrderDishInstruction(OrderDishInstructionModel instruction) async {
+    final currentOrderResponse = state.value;
+    if (currentOrderResponse == null) {
+      logger.w('Cannot delete instruction: No active order in state.');
+      return;
+    }
+
+    final previousState = state;
+    try {
+      final request = DeleteRestaurantOrderDishInstructionRequest(
+        orderDishInstructionId: instruction.id!,
+        orderDishId: instruction.order_dish_id!,
+        orderBillId: currentOrderResponse.workingBill?.id ?? '',
+        vatRate: 0.0,
+        orderId: currentOrderResponse.order?.id ?? '',
+        restaurantId: restaurantAppData?.restaurant?.id ?? 0,
+        userId: ref.read(localStorageProvider).getUserId() ?? 0,
+        terminalId: ref.read(localStorageProvider).getTerminalId() ?? 0,
+        orderPolicyName: AppStrings.quickOrder,
+      );
+      final repository = ref.read(restaurantRepositoryProvider);
+      final response = await repository.deleteRestaurantOrderDishInstructionAndGetOrder(request);
+      if (response.status_code == 200) {
+        await _getRestaurantOrderById();
+      } else {
+        state = previousState;
+        _showErrorPopup( response.message ?? 'Failed to delete instruction ' '(Status Code: ${response.status_code})',
+        );
+      }
+    } catch (e, stack) {
+      logger.e('Error deleting instruction: $e', error: e, stackTrace: stack);
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }

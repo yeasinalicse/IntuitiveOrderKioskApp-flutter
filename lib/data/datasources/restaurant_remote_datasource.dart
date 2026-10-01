@@ -1,11 +1,13 @@
 import 'package:intuitiveorderkioskappflutter/core/constants/api_constants.dart';
 import 'package:intuitiveorderkioskappflutter/core/network/api_client.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/delete_restaurant_order_dish_Instruction_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_restaurant_order_with_dish.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/add_dish_on_order_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/update_order_dish_allergens_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/void_dish_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/update_dish_quantity_request.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/UpdateOrderDishInstructionQuantityRequest.dart';
 
 class RestaurantRemoteDataSource {
   final ApiClient _apiClient;
@@ -128,7 +130,7 @@ class RestaurantRemoteDataSource {
     }
   }
 
-  Future<dynamic> updateOrderDishInstructionQuantity(UpdateDishQuantityRequest request) async {
+  Future<dynamic> updateOrderDishInstructionQuantity(UpdateOrderDishInstructionQuantityRequest request) async {
     final response = await _apiClient.post(
       ApiConstants.updateOrderDishInstructionQuantity,
       data: request.toJson(),
@@ -137,6 +139,18 @@ class RestaurantRemoteDataSource {
       return response.data;
     } else {
       throw Exception('Failed to update dish instruction quantity: ${response.statusCode}');
+    }
+  }
+
+  Future<dynamic> deleteRestaurantOrderDishInstructionAndGetOrder(DeleteRestaurantOrderDishInstructionRequest request) async {
+    final response = await _apiClient.post(
+      ApiConstants.deleteRestaurantOrderDishInstructionAndGetOrder,
+      data: request.toJson(),
+    );
+    if (response.statusCode == 200) {
+      return response.data;
+    } else {
+      throw Exception('Failed to delete dish instruction: ${response.statusCode}');
     }
   }
 }

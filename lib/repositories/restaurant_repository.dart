@@ -1,4 +1,6 @@
 import 'package:intuitiveorderkioskappflutter/data/datasources/restaurant_remote_datasource.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/UpdateOrderDishInstructionQuantityRequest.dart';
+import 'package:intuitiveorderkioskappflutter/models/requests/delete_restaurant_order_dish_Instruction_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/responses/order_response/order_response_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/restaurant_app_data_model.dart';
 import 'package:intuitiveorderkioskappflutter/core/utils/logger.dart';
@@ -117,12 +119,22 @@ class RestaurantRepository {
     }
   }
 
-  Future<OrderResponseModel> updateOrderDishInstructionQuantity(UpdateDishQuantityRequest request) async {
+  Future<OrderResponseModel> updateOrderDishInstructionQuantity(UpdateOrderDishInstructionQuantityRequest request) async {
     try {
       final data = await _remoteDataSource.updateOrderDishInstructionQuantity(request);
       return OrderResponseModel.fromJson(data);
     } catch (e) {
       logger.e('Error in updateOrderDishInstructionQuantity: $e');
+      rethrow;
+    }
+  }
+
+  Future<OrderResponseModel> deleteRestaurantOrderDishInstructionAndGetOrder(DeleteRestaurantOrderDishInstructionRequest request) async {
+    try {
+      final data = await _remoteDataSource.deleteRestaurantOrderDishInstructionAndGetOrder(request);
+      return OrderResponseModel.fromJson(data);
+      } catch (e) {
+      logger.e('Error in deleteRestaurantOrderDishInstructionAndGetOrder: $e');
       rethrow;
     }
   }
