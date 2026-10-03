@@ -535,15 +535,26 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
       return;
     }
 
+    OrderDishModel? selectedDish = currentOrderResponse.selectedDish;
+    if (selectedDish == null && instruction.order_dish_id != null && currentOrderResponse.orderDish.isNotEmpty) {
+      selectedDish = currentOrderResponse.orderDish.firstWhere(
+        (d) => d.id == instruction.order_dish_id,
+        orElse: () => currentOrderResponse.orderDish.last,
+      );
+      state = AsyncValue.data(currentOrderResponse.copyWith(selectedDish: selectedDish));
+    }
+    final finalOrderResponse = state.value ?? currentOrderResponse;
+    final selectedDishId = selectedDish?.id ?? instruction.order_dish_id ?? '';
+
     final previousState = state;
     try {
       final request = UpdateOrderDishInstructionQuantityRequest(
         instructionId: instruction.id!,
-        qty: instruction.quantity! + 1,
-        selectedDishId: currentOrderResponse.selectedDish?.id ?? '',
-        orderBillId: currentOrderResponse.workingBill?.id ?? '',
+        qty: (instruction.quantity ?? 0) + 1,
+        selectedDishId: selectedDishId,
+        orderBillId: finalOrderResponse.workingBill?.id ?? '',
         vatRate: 0.0,
-        orderId: currentOrderResponse.order?.id ?? '',
+        orderId: finalOrderResponse.order?.id ?? '',
         restaurantId: restaurantAppData?.restaurant?.id ?? 0,
         userId: ref.read(localStorageProvider).getUserId() ?? 0,
         terminalId: ref.read(localStorageProvider).getTerminalId() ?? 0,
@@ -573,15 +584,26 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
       return;
     }
 
+    OrderDishModel? selectedDish = currentOrderResponse.selectedDish;
+    if (selectedDish == null && instruction.order_dish_id != null && currentOrderResponse.orderDish.isNotEmpty) {
+      selectedDish = currentOrderResponse.orderDish.firstWhere(
+        (d) => d.id == instruction.order_dish_id,
+        orElse: () => currentOrderResponse.orderDish.last,
+      );
+      state = AsyncValue.data(currentOrderResponse.copyWith(selectedDish: selectedDish));
+    }
+    final finalOrderResponse = state.value ?? currentOrderResponse;
+    final selectedDishId = selectedDish?.id ?? instruction.order_dish_id ?? '';
+
     final previousState = state;
     try {
       final request = UpdateOrderDishInstructionQuantityRequest(
         instructionId: instruction.id!,
-        qty: instruction.quantity! - 1,
-        selectedDishId: currentOrderResponse.selectedDish?.id ?? '',
-        orderBillId: currentOrderResponse.workingBill?.id ?? '',
+        qty: (instruction.quantity ?? 1) - 1,
+        selectedDishId: selectedDishId,
+        orderBillId: finalOrderResponse.workingBill?.id ?? '',
         vatRate: 0.0,
-        orderId: currentOrderResponse.order?.id ?? '',
+        orderId: finalOrderResponse.order?.id ?? '',
         restaurantId: restaurantAppData?.restaurant?.id ?? 0,
         userId: ref.read(localStorageProvider).getUserId() ?? 0,
         terminalId: ref.read(localStorageProvider).getTerminalId() ?? 0,
@@ -594,7 +616,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         await _getRestaurantOrderById();
       } else {
         state = previousState;
-        _showErrorPopup( response.message ?? 'Failed to increase instruction quantity ' '(Status Code: ${response.status_code})',
+        _showErrorPopup( response.message ?? 'Failed to decrease instruction quantity ' '(Status Code: ${response.status_code})',
         );
       }
     } catch (e, stack) {

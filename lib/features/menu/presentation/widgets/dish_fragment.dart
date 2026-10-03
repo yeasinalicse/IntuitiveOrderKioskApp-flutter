@@ -57,14 +57,21 @@ class DishFragment extends ConsumerWidget {
                   onDishSelected(originalDish, selectedCategory, groupId, originalDish.id.toString());
                 }
 
-                // 2. If it has OptionGroups, show the Customization Popup on top
+                // 2. If it has OptionGroups or Instructions, show the Customization Popup on top
                 final restaurantData = ref.read(restaurantAppDataProvider).value;
-                final hasOptionGroups = restaurantData?.optiongroupList.any((og) => og.parent_id == groupId) ?? false;
+                final hasChildGroups = restaurantData?.optiongroupList.any((og) => og.parent_id == groupId) ?? false;
+                final hasInstructions = restaurantData?.instructionList.any((ins) => ins.group_id == groupId) ?? false;
+                final hasSelfGroup = restaurantData?.optiongroupList.any((og) => og.id == groupId) ?? false;
+                final hasOptionsOrInstructions = (groupId != null && groupId != 0) && (hasChildGroups || hasInstructions || hasSelfGroup);
 
-                if (hasOptionGroups && context.mounted) {
+                if (hasOptionsOrInstructions && context.mounted) {
                   Future.delayed(const Duration(milliseconds: 300), () {
                     if (context.mounted) {
-                      OptionGroupPopup.show(context, groupId: groupId);
+                      OptionGroupPopup.show(
+                        context,
+                        groupId: groupId,
+                        orderDishId: originalDish.id?.toString(),
+                      );
                     }
                   });
                 }

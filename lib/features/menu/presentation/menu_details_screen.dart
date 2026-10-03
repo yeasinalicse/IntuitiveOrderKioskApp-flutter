@@ -188,6 +188,18 @@ class MenuDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildOptionsSection(BuildContext context, WidgetRef ref, ThemeData theme) {
+    final restaurantData = ref.watch(restaurantAppDataProvider).value;
+    if (groupId == null || groupId == 0) return const SizedBox.shrink();
+
+    final hasChildGroups = restaurantData?.optiongroupList.any((og) => og.parent_id == groupId) ?? false;
+    final hasInstructions = restaurantData?.instructionList.any((ins) => ins.group_id == groupId) ?? false;
+    final hasSelfGroup = restaurantData?.optiongroupList.any((og) => og.id == groupId) ?? false;
+    final hasOptionsOrInstructions = hasChildGroups || hasInstructions || hasSelfGroup;
+
+    if (!hasOptionsOrInstructions) {
+      return const SizedBox.shrink();
+    }
+
     final orderResponse = ref.watch(orderManagementProvider).value;
 
     OrderDishModel? currentOrderDish;
@@ -212,7 +224,11 @@ class MenuDetailsScreen extends ConsumerWidget {
       children: [
         InkWell(
           onTap: () {
-            OptionGroupPopup.show(context, groupId: groupId);
+            OptionGroupPopup.show(
+              context,
+              groupId: groupId,
+              orderDishId: currentOrderDish?.id ?? orderResponse?.selectedDish?.id ?? dishId.toString(),
+            );
           },
           borderRadius: BorderRadius.circular(12),
           child: Container(
@@ -556,8 +572,6 @@ class _DishPriceAndQuantityControl extends ConsumerWidget {
                   if (currentOrderDish != null) {
                     if ((currentOrderDish.quantity ?? 1) > 1) {
                       ref.read(orderManagementProvider.notifier).decreaseDishQuantityWithInstructionByOne(currentOrderDish);
-                    } else {
-                      ref.read(orderManagementProvider.notifier).voidDish(currentOrderDish);
                     }
                   }
                 },
