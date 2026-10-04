@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
@@ -22,7 +21,6 @@ class DishFragment extends ConsumerWidget {
     final categoryState = ref.watch(categoryProvider);
     final groupIdViewModel = ref.watch(getGroupIdProvider);
     final theme = Theme.of(context);
-
     final selectedCategory = categoryState.selectedCategory;
     final hasParent = parentDishId != null;
 
@@ -59,10 +57,7 @@ class DishFragment extends ConsumerWidget {
 
                 // 2. If it has OptionGroups or Instructions, show the Customization Popup on top
                 final restaurantData = ref.read(restaurantAppDataProvider).value;
-                final hasChildGroups = restaurantData?.optiongroupList.any((og) => og.parent_id == groupId) ?? false;
-                final hasInstructions = restaurantData?.instructionList.any((ins) => ins.group_id == groupId) ?? false;
-                final hasSelfGroup = restaurantData?.optiongroupList.any((og) => og.id == groupId) ?? false;
-                final hasOptionsOrInstructions = (groupId != null && groupId != 0) && (hasChildGroups || hasInstructions || hasSelfGroup);
+                final hasOptionsOrInstructions = groupIdViewModel.hasOptionsOrInstructions(restaurantData, groupId);
 
                 if (hasOptionsOrInstructions && context.mounted) {
                   Future.delayed(const Duration(milliseconds: 300), () {
@@ -174,12 +169,8 @@ class DishFragment extends ConsumerWidget {
                                   return Icon(Icons.fastfood, color: theme.textTheme.bodyMedium?.color, size: 80);
                                 }
                                 try {
-                                  String pureBase64 = base64String.trim();
-                                  if (pureBase64.contains(',')) {
-                                    pureBase64 = pureBase64.split(',').last;
-                                  }
                                   return Image.memory(
-                                    base64Decode(pureBase64),
+                                    decodeDishImageBase64(base64String),
                                     height: 80,
                                     fit: BoxFit.contain,
                                     errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.red, size: 80),

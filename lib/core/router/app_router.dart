@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/core/widgets/main_layout.dart';
 import 'package:intuitiveorderkioskappflutter/features/cart/presentation/order_success_screen.dart';
 import 'package:intuitiveorderkioskappflutter/features/cart/presentation/payment_selection_screen.dart';
@@ -8,11 +9,31 @@ import 'package:intuitiveorderkioskappflutter/features/menu/presentation/menu_de
 import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/dish_fragment.dart';
 import 'package:intuitiveorderkioskappflutter/features/welcome/presentation/welcome_screen.dart';
 import 'package:intuitiveorderkioskappflutter/features/splash/presentation/splash_screen.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  /// Builds the `extra` map read by the '/details' route.
+  static Map<String, dynamic> detailsExtra({
+    required DishModel dish,
+    required CategoryModel? category,
+    required int? groupId,
+    required String itemId,
+    required String productName,
+  }) {
+    return {
+      'dish': dish,
+      'category': category,
+      'groupId': groupId,
+      'itemId': itemId,
+      'productName': productName,
+      'productPrice': '${AppStrings.currencySymbol}${dish.price?.toStringAsFixed(2) ?? '0.00'}',
+      'productImage': '', // API doesn't provide images yet
+    };
+  }
 
   static final router = GoRouter(
     navigatorKey: navigatorKey,
@@ -38,15 +59,13 @@ class AppRouter {
                   final dishsList = restaurantData?.dishsList ?? [];
                   final productName = dish.getFormattedName(dishsList);
 
-                  context.push('/details', extra: {
-                    'dish': dish,
-                    'category': category,
-                    'groupId': groupId,
-                    'itemId': itemId,
-                    'productName': productName,
-                    'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
-                    'productImage': '', // API doesn't provide images yet
-                  });
+                  context.push('/details', extra: detailsExtra(
+                    dish: dish,
+                    category: category,
+                    groupId: groupId,
+                    itemId: itemId,
+                    productName: productName,
+                  ));
                 },
               ),
             ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/core/storage/local_storage.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
+import 'package:intuitiveorderkioskappflutter/core/utils/logger.dart';
 import 'package:intuitiveorderkioskappflutter/core/widgets/app_popups.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
@@ -288,18 +289,22 @@ class InstructionNotifier extends FamilyNotifier<InstructionState, (int?, String
     if (selectedDish == null || selectedDish.id == null) return;
     final localStorage = ref.read(localStorageProvider);
     final restaurantData = ref.read(restaurantAppDataProvider).value;
-    final instruction = restaurantData?.instructionList.firstWhere((ins) => ins.id == instructionId);
-    final groupId = instruction?.group_id;
-    final optionGroup = restaurantData?.optiongroupList.firstWhere((og) => og.id == groupId);
+    final instruction = restaurantData?.instructionList.where((ins) => ins.id == instructionId).firstOrNull;
+    if (instruction == null) {
+      logger.w('Cannot save instruction: instruction $instructionId not found in restaurant data.');
+      return;
+    }
+    final groupId = instruction.group_id;
+    final optionGroup = restaurantData?.optiongroupList.where((og) => og.id == groupId).firstOrNull;
     final workingBillId = orderState?.workingBill?.id;
     final selectedBillId = (workingBillId != null && workingBillId.trim().isNotEmpty) ? workingBillId : null;
     final splitBillGuestId = orderState?.splitBillByGuest?.id;
     final splitBillByGuestId = (splitBillGuestId != null && splitBillGuestId.trim().isNotEmpty) ? splitBillGuestId : null;
 
     final request = SaveUpdateOrderDishInstructionRequest(
-      instruction_id: instruction?.id ?? 0,
-      instruction: instruction?.instruction ?? '',
-      instruction_price: instruction?.price ?? 0.0,
+      instruction_id: instruction.id ?? 0,
+      instruction: instruction.instruction ?? '',
+      instruction_price: instruction.price ?? 0.0,
       order_dish_id: selectedDish.id!,
       group_id: optionGroup?.id ?? 0,
       number_of_free_option: optionGroup?.number_of_free_item ?? 0,
@@ -315,6 +320,18 @@ class InstructionNotifier extends FamilyNotifier<InstructionState, (int?, String
     );
 
     await ref.read(orderManagementProvider.notifier).saveUpdateOrderDishInstruction(request);
+  }
+
+  /// Instructions to show: children of [parentInstructionId] when one is open,
+  /// otherwise the top-level instructions of [selectedOptionGroupId].
+  static List<InstructionModel> visibleInstructions(
+    List<InstructionModel> allInstructions,
+    int? selectedOptionGroupId,
+    int? parentInstructionId,
+  ) {
+    return parentInstructionId != null
+        ? allInstructions.where((ins) => ins.parent_option_dish_id == parentInstructionId).toList()
+        : allInstructions.where((ins) => ins.group_id == selectedOptionGroupId && (ins.parent_option_dish_id == null || ins.parent_option_dish_id == 0)).toList();
   }
 
   void clearSelection() {

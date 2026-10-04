@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
@@ -58,3 +60,13 @@ final dishImageProvider = FutureProvider.family<String?, int>((ref, dishId) asyn
   final repository = ref.watch(restaurantRepositoryProvider);
   return repository.getRestaurantDishImageById(dishId);
 });
+
+/// Decodes a dish image from [dishImageProvider], stripping any data-URI prefix.
+/// Throws a [FormatException] if the string is not valid base64.
+Uint8List decodeDishImageBase64(String base64String) {
+  String pureBase64 = base64String.trim();
+  if (pureBase64.contains(',')) {
+    pureBase64 = pureBase64.split(',').last;
+  }
+  return base64Decode(pureBase64);
+}

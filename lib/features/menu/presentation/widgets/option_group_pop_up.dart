@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/instruction_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
@@ -172,9 +173,7 @@ class _OptionGroupPopupState extends ConsumerState<OptionGroupPopup> {
 
     final restaurantData = ref.watch(restaurantAppDataProvider).value;
     final allInstructions = restaurantData?.instructionList ?? [];
-    final instructions = parentInstructionId != null
-        ? allInstructions.where((ins) => ins.parent_option_dish_id == parentInstructionId).toList()
-        : allInstructions.where((ins) => ins.group_id == selectedOptionGroupId && (ins.parent_option_dish_id == null || ins.parent_option_dish_id == 0)).toList();
+    final instructions = InstructionNotifier.visibleInstructions(allInstructions, selectedOptionGroupId, parentInstructionId);
 
     return Column(
       children: [
@@ -307,8 +306,8 @@ class _OptionGroupPopupState extends ConsumerState<OptionGroupPopup> {
                   if (hasPrice)
                     Text(
                       quantity > 1
-                          ? "+£${totalPrice.toStringAsFixed(2)} (${quantity}x £${unitPrice.toStringAsFixed(2)})"
-                          : "+£${unitPrice.toStringAsFixed(2)}",
+                          ? "+${AppStrings.currencySymbol}${totalPrice.toStringAsFixed(2)} (${quantity}x ${AppStrings.currencySymbol}${unitPrice.toStringAsFixed(2)})"
+                          : "+${AppStrings.currencySymbol}${unitPrice.toStringAsFixed(2)}",
                       style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold),
                     ),
                 ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intuitiveorderkioskappflutter/core/router/app_router.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
@@ -160,7 +161,10 @@ class _BottomCartBarState extends ConsumerState<BottomCartBar> {
                         Expanded(
                           flex: 1,
                           child: OutlinedButton(
-                            onPressed: () => ref.read(cartProvider.notifier).clear(),
+                            onPressed: () {
+                              ref.read(orderManagementProvider.notifier).resetOrder();
+                              ref.read(cartProvider.notifier).clear();
+                            },
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 20),
                               side: const BorderSide(color: Colors.redAccent, width: 2),
@@ -235,7 +239,7 @@ class _BottomCartBarState extends ConsumerState<BottomCartBar> {
   }
 
   Widget _buildOrderItem(BuildContext context, WidgetRef ref, OrderDishModel item, double screenWidth, ThemeData theme) {
-    final instructionsText = _getInstructionsText(item);
+    final instructionsText = CartViewModel.instructionsText(item);
 
     return Container(
       decoration: BoxDecoration(
@@ -286,26 +290,18 @@ class _BottomCartBarState extends ConsumerState<BottomCartBar> {
                       final groupId = ref.read(getGroupIdProvider).getPrimaryGroupId(dish, category);
                       final productName = dish.getFormattedName(restaurantData.dishsList);
 
+                      final detailsExtra = AppRouter.detailsExtra(
+                        dish: dish,
+                        category: category.id != null ? category : null,
+                        groupId: groupId,
+                        itemId: dish.id.toString(),
+                        productName: productName,
+                      );
+
                       if (isCurrentlyOnDetails) {
-                        context.pushReplacement('/details', extra: {
-                          'dish': dish,
-                          'category': category.id != null ? category : null,
-                          'groupId': groupId,
-                          'itemId': dish.id.toString(),
-                          'productName': productName,
-                          'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
-                          'productImage': '',
-                        });
+                        context.pushReplacement('/details', extra: detailsExtra);
                       } else {
-                        context.push('/details', extra: {
-                          'dish': dish,
-                          'category': category.id != null ? category : null,
-                          'groupId': groupId,
-                          'itemId': dish.id.toString(),
-                          'productName': productName,
-                          'productPrice': '£${dish.price?.toStringAsFixed(2) ?? '0.00'}',
-                          'productImage': '',
-                        });
+                        context.push('/details', extra: detailsExtra);
                       }
                     },
                     child: Center(
@@ -386,33 +382,6 @@ class _BottomCartBarState extends ConsumerState<BottomCartBar> {
     );
   }
 
-  String _getInstructionsText(OrderDishModel item) {
-    List<String> result = [];
-
-    if (item.instructions.isNotEmpty) {
-      for (final ins in item.instructions) {
-        if (ins.instruction != null && ins.instruction!.trim().isNotEmpty) {
-          result.add(ins.instruction!.trim());
-        }
-      }
-    }
-
-    if (result.isEmpty && item.dish_instructions != null && item.dish_instructions!.trim().isNotEmpty) {
-      result.add(item.dish_instructions!.trim());
-    }
-
-    if (result.isEmpty && item.InstructionsList != null && item.InstructionsList!.isNotEmpty) {
-      for (final ins in item.InstructionsList!) {
-        if (ins is Map && ins['instruction'] != null && ins['instruction'].toString().trim().isNotEmpty) {
-          result.add(ins['instruction'].toString().trim());
-        } else if (ins != null && ins.toString().trim().isNotEmpty) {
-          result.add(ins.toString().trim());
-        }
-      }
-    }
-
-    return result.join(', ');
-  }
 }
 
 class ZigzagClipper extends CustomClipper<Path> {

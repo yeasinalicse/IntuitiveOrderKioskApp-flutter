@@ -23,4 +23,7 @@ class AppStrings {
   static const String quickOrder = 'Quick Order';
   static const String barOrder = 'Bar';
   static const String kiosk = 'Kiosk';
+
+  // allergen warning line stored on an order dish
+  static String allergenWarning(String allergenName) => '***Allergen Warning***$allergenName***';
 }

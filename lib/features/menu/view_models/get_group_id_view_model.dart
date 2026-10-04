@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/restaurant_app_data_model.dart';
 
 class GetGroupIdViewModel {
   final Ref ref;
@@ -40,6 +41,17 @@ class GetGroupIdViewModel {
     }
 
     return groupIds.toSet().toList();
+  }
+
+  /// True when [groupId] is a non-zero group that has child option groups,
+  /// instructions, or is itself an option group.
+  bool hasOptionsOrInstructions(RestaurantAppDataModel? restaurantData, int? groupId) {
+    if (groupId == null || groupId == 0) return false;
+
+    final hasChildGroups = restaurantData?.optiongroupList.any((og) => og.parent_id == groupId) ?? false;
+    final hasInstructions = restaurantData?.instructionList.any((ins) => ins.group_id == groupId) ?? false;
+    final hasSelfGroup = restaurantData?.optiongroupList.any((og) => og.id == groupId) ?? false;
+    return hasChildGroups || hasInstructions || hasSelfGroup;
   }
 }
 

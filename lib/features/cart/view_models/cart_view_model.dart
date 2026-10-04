@@ -43,6 +43,35 @@ class CartViewModel extends Notifier<CartState> {
   Future<void> voidDish(OrderDishModel dish) async {
     await ref.read(orderManagementProvider.notifier).voidDish(dish);
   }
+
+  /// Comma-separated instruction names shown under a cart item.
+  static String instructionsText(OrderDishModel item) {
+    List<String> result = [];
+
+    if (item.instructions.isNotEmpty) {
+      for (final ins in item.instructions) {
+        if (ins.instruction != null && ins.instruction!.trim().isNotEmpty) {
+          result.add(ins.instruction!.trim());
+        }
+      }
+    }
+
+    if (result.isEmpty && item.dish_instructions != null && item.dish_instructions!.trim().isNotEmpty) {
+      result.add(item.dish_instructions!.trim());
+    }
+
+    if (result.isEmpty && item.InstructionsList != null && item.InstructionsList!.isNotEmpty) {
+      for (final ins in item.InstructionsList!) {
+        if (ins is Map && ins['instruction'] != null && ins['instruction'].toString().trim().isNotEmpty) {
+          result.add(ins['instruction'].toString().trim());
+        } else if (ins != null && ins.toString().trim().isNotEmpty) {
+          result.add(ins.toString().trim());
+        }
+      }
+    }
+
+    return result.join(', ');
+  }
 }
 
 final cartProvider = NotifierProvider<CartViewModel, CartState>(() {

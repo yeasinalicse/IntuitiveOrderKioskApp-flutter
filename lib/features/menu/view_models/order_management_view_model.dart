@@ -22,6 +22,7 @@ import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/ca
 import 'package:intuitiveorderkioskappflutter/models/responses/order_response/order_response_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 import 'package:intuitiveorderkioskappflutter/providers/api_providers.dart';
+import 'package:intuitiveorderkioskappflutter/repositories/restaurant_repository.dart';
 import 'package:intuitiveorderkioskappflutter/core/utils/logger.dart';
 import 'package:intuitiveorderkioskappflutter/core/storage/local_storage.dart';
 import 'package:intuitiveorderkioskappflutter/utils/order_id_generator.dart';
@@ -34,6 +35,16 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
   final Ref ref;
   late final restaurantAppData = ref.read(restaurantAppDataProvider).value;
   OrderManagementNotifier(this.ref) : super(const AsyncValue.data(null));
+  RestaurantRepository get _repository => ref.read(restaurantRepositoryProvider);
+  LocalStorage get _localStorage => ref.read(localStorageProvider);
+  int? get _terminalId => _localStorage.getTerminalId();
+  int? get _userId => _localStorage.getUserId();
+  int? get _restaurantId => restaurantAppData?.restaurant?.id;
+  int? get _platformId => restaurantAppData?.workingPlatform?.id;
+  List<DishModel> get _dishsList => ref.read(restaurantAppDataProvider).value?.dishsList ?? [];
+
+  static const SelectedChairModel _emptySelectedChair = SelectedChairModel(selected_chair_id: 0, chair_id: 0, chair_no: "0");
+  static const OneBagRequestModel _emptyOneBag = OneBagRequestModel(quantity: 0, price: 0);
 
   Future<void> addToOrder(DishModel dish, {CategoryModel? category, int quantity = 1, double? totalPrice}) async {
     final currentOrderResponse = state.value;
@@ -49,13 +60,18 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     final previousState = state;
     state = const AsyncValue.loading();
     try {
-      final terminalId = ref.read(localStorageProvider).getTerminalId();
+      final terminalId = _terminalId;
       final orderId = OrderIdGenerator.generate();
       final calculatedTotal = totalPrice ?? (dish.price != null ? dish.price! * quantity : 0.0);
       final now = DateTime.now();
-      final restaurantId = restaurantAppData?.restaurant?.id;
-      final platformId = restaurantAppData?.workingPlatform?.id;
-      final int userId = ref.read(localStorageProvider).getUserId() as int;
+      final restaurantId = _restaurantId;
+      final platformId = _platformId;
+      final int? userId = _userId;
+      if (userId == null) {
+        state = previousState;
+        _showErrorPopup('No Kiosk user configuration was found. Please ensure a Kiosk user exists in the system.');
+        return;
+      }
 
       bool activeAutoBagCharge = restaurantAppData?.restaurantSettings?.active_auto_bag_charge ?? false;
       OneBagRequestModel? oneBag;
@@ -72,15 +88,14 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         }
       }
 
-      final dishsList = ref.read(restaurantAppDataProvider).value?.dishsList ?? [];
-      final formattedDishName = dish.getFormattedName(dishsList);
+      final formattedDishName = dish.getFormattedName(_dishsList);
 
       final request = SaveRestaurantOrderWithDishRequest(
         order: OrderModel(
           id: orderId,
           server_id: dish.server_id ?? 0,
           status: true,
-          restaurant_order_policy_id: ref.read(localStorageProvider).getQuickOrderPolicyId(),
+          restaurant_order_policy_id: _localStorage.getQuickOrderPolicyId(),
           total_amount: calculatedTotal,
           grand_total: calculatedTotal,
           comments: "",
@@ -114,49 +129,17 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
           delivery_time_range: "",
           table_time: 0,
         ),
-        orderDish: OrderDishModel(
+        orderDish: _buildOrderDish(
+          dish,
           id: OrderIdGenerator.generate(),
-          server_id: dish.server_id ?? 0,
-          restaurant_order_id: orderId,
-          dish_category_id: dish.dish_category_id,
-          restaurant_dish_id: dish.id,
-          dish_name: formattedDishName,
-          dish_short_name: dish.short_name,
-          alternative_dish_name: dish.alternative_dish_name,
-          is_miscelenous: dish.is_dish_extras ?? false,
+          restaurantOrderId: orderId,
+          formattedDishName: formattedDishName,
           quantity: quantity,
-          price: dish.price,
-          total_price: calculatedTotal,
-          excludeFromOffer: dish.exclude_from_offer ?? false,
-          is_sync: false,
-          quantity_printed: 0,
-          category_print_order: dish.category_print_order ?? 0,
-          dish_sort_order: dish.sort_order ?? 0,
-          updated_at: now,
-          dish_description: dish.dish_description,
-          dish_pack_size: dish.pack_size,
-          dish_expiry_date: dish.expiry_date,
-          vat_rate: dish.vat_rate ?? 0,
-          is_vat_included: dish.is_vat_included,
-          terminal_access_status: true,
-          disable_on_android: false,
-          hide_on_android: false,
-          add_anytime: false,
-          kds_terminal_id: 0,
-          is_prepared_with_food: false,
-          instruction_price: 0,
-          vat_amount: 0,
-          terminal_id: terminalId,
-          offer_discount_id: dish.offer_discount_id ?? 0,
-          is_comp_item: false,
-          comp_item_price: 0,
-          comp_item_total_price: 0
+          totalPrice: calculatedTotal,
+          updatedAt: now,
+          terminalId: terminalId,
         ),
-        selectedChair: const SelectedChairModel(
-          selected_chair_id: 0,
-          chair_id: 0,
-          chair_no: "0",
-        ),
+        selectedChair: _emptySelectedChair,
         workingBill: BillModel(
           id: null,
           order_id: orderId,
@@ -176,15 +159,14 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         platform_id: platformId,
         quick_order_type_enabled: true,
         active_auto_bag_charge: activeAutoBagCharge,
-        oneBag: oneBag ?? const OneBagRequestModel(quantity: 0, price: 0),
+        oneBag: oneBag ?? _emptyOneBag,
         delivery_ChargeId: 0,
         bag_ChargeId: bagChargeId ?? 0,
         commet_call_id: 0,
         table_time: 0,
       );
 
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.saveRestaurantOrderWithDish(request);
+      final response = await _repository.saveRestaurantOrderWithDish(request);
       if (response.status_code == 200) {
         state = AsyncValue.data(response);
       } else {
@@ -208,8 +190,8 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     final previousState = state;
     state = const AsyncValue.loading();
     try {
-      final terminalId = ref.read(localStorageProvider).getTerminalId();
-      final platformId = restaurantAppData?.workingPlatform?.id;
+      final terminalId = _terminalId;
+      final platformId = _platformId;
       final now = DateTime.now();
       final calculatedTotal = totalPrice ?? (dish.price != null ? dish.price! * quantity : 0.0);
       
@@ -218,50 +200,21 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         total_amount: (currentOrderResponse.order!.total_amount ?? 0.0) + calculatedTotal,
       );
 
-      final dishsList = ref.read(restaurantAppDataProvider).value?.dishsList ?? [];
-      final formattedDishName = dish.getFormattedName(dishsList);
+      final formattedDishName = dish.getFormattedName(_dishsList);
 
       final request = AddDishOnOrderRequest(
         order: updatedOrder,
-        orderDish: OrderDishModel(
-            id: null,
-            server_id: dish.server_id ?? 0,
-            restaurant_order_id: updatedOrder.id,
-            dish_category_id: dish.dish_category_id,
-            restaurant_dish_id: dish.id,
-            dish_name: formattedDishName,
-            dish_short_name: dish.short_name,
-            alternative_dish_name: dish.alternative_dish_name,
-            is_miscelenous: dish.is_dish_extras ?? false,
-            quantity: quantity,
-            price: dish.price,
-            total_price: calculatedTotal,
-            excludeFromOffer: dish.exclude_from_offer ?? false,
-            is_sync: false,
-            quantity_printed: 0,
-            category_print_order: dish.category_print_order ?? 0,
-            dish_sort_order: dish.sort_order ?? 0,
-            updated_at: now,
-            dish_description: dish.dish_description,
-            dish_pack_size: dish.pack_size,
-            dish_expiry_date: dish.expiry_date,
-            vat_rate: dish.vat_rate ?? 0,
-            is_vat_included: dish.is_vat_included,
-            terminal_access_status: true,
-            disable_on_android: false,
-            hide_on_android: false,
-            add_anytime: false,
-            kds_terminal_id: 0,
-            is_prepared_with_food: false,
-            instruction_price: 0,
-            vat_amount: 0,
-            terminal_id: terminalId,
-            offer_discount_id: dish.offer_discount_id ?? 0,
-            is_comp_item: false,
-            comp_item_price: 0,
-            comp_item_total_price: 0
+        orderDish: _buildOrderDish(
+          dish,
+          id: null,
+          restaurantOrderId: updatedOrder.id,
+          formattedDishName: formattedDishName,
+          quantity: quantity,
+          totalPrice: calculatedTotal,
+          updatedAt: now,
+          terminalId: terminalId,
         ),
-        selectedChair: currentOrderResponse.selectedChair ?? const SelectedChairModel(selected_chair_id: 0, chair_id: 0, chair_no: "0"),
+        selectedChair: currentOrderResponse.selectedChair ?? _emptySelectedChair,
         workingBill: currentOrderResponse.workingBill?.copyWith(
           total_amount: (currentOrderResponse.workingBill?.total_amount ?? 0.0) + calculatedTotal,
           grand_total: (currentOrderResponse.workingBill?.grand_total ?? 0.0) + calculatedTotal,
@@ -278,13 +231,13 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         ),
         orderPolicyName: AppStrings.quickOrder,
         tables: currentOrderResponse.tables,
-        restaurant_id: restaurantAppData?.restaurant?.id,
-        user_id: (ref.read(localStorageProvider).getUserId()),
+        restaurant_id: _restaurantId,
+        user_id: _userId,
         terminal_id: terminalId,
         platform_id: platformId,
         quick_order_type_enabled: currentOrderResponse.quick_order_type_enabled ?? false,
         active_auto_bag_charge: currentOrderResponse.active_auto_bag_charge ?? false,
-        oneBag: currentOrderResponse.oneBag ?? const OneBagRequestModel(quantity: 0, price: 0.0),
+        oneBag: currentOrderResponse.oneBag ?? _emptyOneBag,
         delivery_ChargeId: currentOrderResponse.delivery_ChargeId ?? 0,
         charges: currentOrderResponse.charges,
         bag_ChargeId: currentOrderResponse.bag_ChargeId ?? 0,
@@ -292,8 +245,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         table_time: currentOrderResponse.table_time ?? 0,
       );
 
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.addDishOnOrder(request);
+      final response = await _repository.addDishOnOrder(request);
       if (response.status_code == 200 && response.order != null) {
         state = AsyncValue.data(response);
       } else {
@@ -307,14 +259,63 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     }
   }
 
+  OrderDishModel _buildOrderDish(
+    DishModel dish, {
+    required String? id,
+    required String? restaurantOrderId,
+    required String formattedDishName,
+    required int quantity,
+    required double totalPrice,
+    required DateTime updatedAt,
+    required int? terminalId,
+  }) {
+    return OrderDishModel(
+      id: id,
+      server_id: dish.server_id ?? 0,
+      restaurant_order_id: restaurantOrderId,
+      dish_category_id: dish.dish_category_id,
+      restaurant_dish_id: dish.id,
+      dish_name: formattedDishName,
+      dish_short_name: dish.short_name,
+      alternative_dish_name: dish.alternative_dish_name,
+      is_miscelenous: dish.is_dish_extras ?? false,
+      quantity: quantity,
+      price: dish.price,
+      total_price: totalPrice,
+      excludeFromOffer: dish.exclude_from_offer ?? false,
+      is_sync: false,
+      quantity_printed: 0,
+      category_print_order: dish.category_print_order ?? 0,
+      dish_sort_order: dish.sort_order ?? 0,
+      updated_at: updatedAt,
+      dish_description: dish.dish_description,
+      dish_pack_size: dish.pack_size,
+      dish_expiry_date: dish.expiry_date,
+      vat_rate: dish.vat_rate ?? 0,
+      is_vat_included: dish.is_vat_included,
+      terminal_access_status: true,
+      disable_on_android: false,
+      hide_on_android: false,
+      add_anytime: false,
+      kds_terminal_id: 0,
+      is_prepared_with_food: false,
+      instruction_price: 0,
+      vat_amount: 0,
+      terminal_id: terminalId,
+      offer_discount_id: dish.offer_discount_id ?? 0,
+      is_comp_item: false,
+      comp_item_price: 0,
+      comp_item_total_price: 0
+    );
+  }
+
   Future<void> saveUpdateOrderDishInstruction(SaveUpdateOrderDishInstructionRequest request) async {
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null) return;
 
     final previousState = state;
     try {
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.saveUpdateOrderDishInstruction(request);
+      final response = await _repository.saveUpdateOrderDishInstruction(request);
       if (response.status_code == 200) {
         _getRestaurantOrderById();
       } else {
@@ -334,8 +335,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
 
     final previousState = state;
     try {
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.updateOrderDishAllergens(request);
+      final response = await _repository.updateOrderDishAllergens(request);
       if (response.status_code == 200) {
         await _getRestaurantOrderById();
       } else {
@@ -356,15 +356,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
       return;
     }
 
-    OrderDishModel? currentOrderDish;
-    if (orderResponse.selectedDish != null && (orderResponse.selectedDish!.restaurant_dish_id == dish.id || orderResponse.selectedDish!.id == dishId)) {
-      currentOrderDish = orderResponse.selectedDish;
-    } else if (orderResponse.orderDish.isNotEmpty) {
-      currentOrderDish = orderResponse.orderDish.cast<OrderDishModel?>().lastWhere(
-        (d) => d != null && (d.restaurant_dish_id == dish.id || d.id == dishId),
-        orElse: () => orderResponse.selectedDish ?? orderResponse.orderDish.last,
-      );
-    }
+    final OrderDishModel? currentOrderDish = findCurrentOrderDish(orderResponse, dish, dishId);
 
     if (currentOrderDish == null || currentOrderDish.id == null) {
       _showErrorPopup('No active dish found in order.');
@@ -377,7 +369,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
       existingAllergens = currentDishAllergens.split('\n').where((e) => e.trim().isNotEmpty).toList();
     }
 
-    final String allergenContent = "***Allergen Warning***$allergenName***";
+    final String allergenContent = AppStrings.allergenWarning(allergenName);
     if (existingAllergens.contains(allergenContent)) {
       existingAllergens.remove(allergenContent);
     } else {
@@ -385,7 +377,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     }
 
     final String allergenString = existingAllergens.join('\n');
-    final int userId = ref.read(localStorageProvider).getUserId() ?? 0;
+    final int userId = _userId ?? 0;
 
     final request = UpdateOrderDishAllergensRequest(
       allergenString: allergenString,
@@ -409,9 +401,9 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     final previousState = state;
     state = const AsyncValue.loading();
     try {
-      final terminalId = ref.read(localStorageProvider).getTerminalId() ?? 0;
-      final restaurantId = restaurantAppData?.restaurant?.id ?? 0;
-      final int userId = ref.read(localStorageProvider).getUserId() ?? 0;
+      final terminalId = _terminalId ?? 0;
+      final restaurantId = _restaurantId ?? 0;
+      final int userId = _userId ?? 0;
       final orderPolicyName = currentOrderResponse.orderPolicyName ?? AppStrings.quickOrder;
 
       final request = VoidDishRequest(
@@ -422,8 +414,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         restaurantId: restaurantId,
       );
 
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.voidDish(request);
+      final response = await _repository.voidDish(request);
       if (response.status_code == 200) {
         if (response.order != null) {
           state = AsyncValue.data(response);
@@ -450,9 +441,9 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
 
     final previousState = state;
     try {
-      final terminalId = ref.read(localStorageProvider).getTerminalId() ?? 0;
-      final restaurantId = restaurantAppData?.restaurant?.id ?? 0;
-      final int userId = ref.read(localStorageProvider).getUserId() ?? 0;
+      final terminalId = _terminalId ?? 0;
+      final restaurantId = _restaurantId ?? 0;
+      final int userId = _userId ?? 0;
       final orderPolicyName = currentOrderResponse.orderPolicyName ?? AppStrings.quickOrder;
 
       final request = UpdateDishQuantityRequest(
@@ -468,8 +459,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         quantity: dish.quantity ?? 1,
       );
 
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.increaseDishQuantityWithInstructionByOne(request);
+      final response = await _repository.increaseDishQuantityWithInstructionByOne(request);
       if (response.status_code == 200) {
         if (response.order != null) {
           state = AsyncValue.data(response);
@@ -503,14 +493,13 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         vatRate: (dish.vat_rate ?? 0.0).toDouble(),
         orderBillId: currentOrderResponse.workingBill?.id ?? '',
         price: dish.price ?? 0.0,
-        restaurantId: restaurantAppData?.restaurant?.id ?? 0,
-        terminalId: ref.read(localStorageProvider).getTerminalId() ?? 0,
-        userId: ref.read(localStorageProvider).getUserId() ?? 0,
+        restaurantId: _restaurantId ?? 0,
+        terminalId: _terminalId ?? 0,
+        userId: _userId ?? 0,
         quantity: dish.quantity ?? 1,
       );
 
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.decreaseDishQuantityWithInstructionByOne(request);
+      final response = await _repository.decreaseDishQuantityWithInstructionByOne(request);
       if (response.status_code == 200) {
         if (response.order != null) {
           state = AsyncValue.data(response);
@@ -555,14 +544,13 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         orderBillId: finalOrderResponse.workingBill?.id ?? '',
         vatRate: 0.0,
         orderId: finalOrderResponse.order?.id ?? '',
-        restaurantId: restaurantAppData?.restaurant?.id ?? 0,
-        userId: ref.read(localStorageProvider).getUserId() ?? 0,
-        terminalId: ref.read(localStorageProvider).getTerminalId() ?? 0,
+        restaurantId: _restaurantId ?? 0,
+        userId: _userId ?? 0,
+        terminalId: _terminalId ?? 0,
         orderPolicyName: AppStrings.quickOrder,
       );
 
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.updateOrderDishInstructionQuantity(request);
+      final response = await _repository.updateOrderDishInstructionQuantity(request);
       if (response.status_code == 200) {
         await _getRestaurantOrderById();
       } else {
@@ -604,14 +592,13 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         orderBillId: finalOrderResponse.workingBill?.id ?? '',
         vatRate: 0.0,
         orderId: finalOrderResponse.order?.id ?? '',
-        restaurantId: restaurantAppData?.restaurant?.id ?? 0,
-        userId: ref.read(localStorageProvider).getUserId() ?? 0,
-        terminalId: ref.read(localStorageProvider).getTerminalId() ?? 0,
+        restaurantId: _restaurantId ?? 0,
+        userId: _userId ?? 0,
+        terminalId: _terminalId ?? 0,
         orderPolicyName: AppStrings.quickOrder,
       );
 
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.updateOrderDishInstructionQuantity(request);
+      final response = await _repository.updateOrderDishInstructionQuantity(request);
       if (response.status_code == 200) {
         await _getRestaurantOrderById();
       } else {
@@ -641,13 +628,12 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         orderBillId: currentOrderResponse.workingBill?.id ?? '',
         vatRate: 0.0,
         orderId: currentOrderResponse.order?.id ?? '',
-        restaurantId: restaurantAppData?.restaurant?.id ?? 0,
-        userId: ref.read(localStorageProvider).getUserId() ?? 0,
-        terminalId: ref.read(localStorageProvider).getTerminalId() ?? 0,
+        restaurantId: _restaurantId ?? 0,
+        userId: _userId ?? 0,
+        terminalId: _terminalId ?? 0,
         orderPolicyName: AppStrings.quickOrder,
       );
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.deleteRestaurantOrderDishInstructionAndGetOrder(request);
+      final response = await _repository.deleteRestaurantOrderDishInstructionAndGetOrder(request);
       if (response.status_code == 200) {
         await _getRestaurantOrderById();
       } else {
@@ -676,8 +662,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         "orderPolicyName": AppStrings.quickOrder,
       };
 
-      final repository = ref.read(restaurantRepositoryProvider);
-      final response = await repository.getRestaurantOrderById(request);
+      final response = await _repository.getRestaurantOrderById(request);
       if (response.status_code == 200) {
         state = AsyncValue.data(response);
       } else {
@@ -689,6 +674,22 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
+  }
+
+  /// Order dish for [dish]: the selected dish if it matches, otherwise the last
+  /// matching order dish, falling back to the selected dish or the last order dish.
+  static OrderDishModel? findCurrentOrderDish(OrderResponseModel? orderResponse, DishModel dish, String dishId) {
+    if (orderResponse == null) return null;
+
+    if (orderResponse.selectedDish != null && (orderResponse.selectedDish!.restaurant_dish_id == dish.id || orderResponse.selectedDish!.id == dishId)) {
+      return orderResponse.selectedDish;
+    } else if (orderResponse.orderDish.isNotEmpty) {
+      return orderResponse.orderDish.cast<OrderDishModel?>().lastWhere(
+        (d) => d != null && (d.restaurant_dish_id == dish.id || d.id == dishId),
+        orElse: () => orderResponse.selectedDish ?? orderResponse.orderDish.last,
+      );
+    }
+    return null;
   }
 
   void setSelectedDish(OrderDishModel dish) {
