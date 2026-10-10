@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/instruction_view_model.dart';
-import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/order/view_models/order_management_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/instruction_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';

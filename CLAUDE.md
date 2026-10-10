@@ -57,7 +57,9 @@ Presentation / UI (features/*/presentation)
 | `lib/data/datasources/` | `restaurant_remote_datasource.dart` |
 | `lib/repositories/` | `restaurant_repository.dart` |
 | `lib/providers/` | `api_providers.dart` (DI chain), `restaurant_data_provider.dart`, `network_provider.dart` |
-| `lib/features/{splash,welcome,menu,cart}/` | `presentation/` (screens and widgets) and `view_models/` |
+| `lib/features/{splash,welcome,menu,cart,order,payment}/` | `presentation/` (screens and widgets) and `view_models/` |
+| `lib/features/order/` | `order_success_screen.dart` and `order_management_view_model.dart` (`orderManagementProvider`) |
+| `lib/features/payment/` | `presentation/payment_selection_screen.dart`, plus `dojo/view_models/` for Dojo card payment |
 | `lib/models/restaurant_app_data/` | Freezed models from `/ApplicationData`, grouped as `common`, `floor`, `menu`, `order`, `restaurant`, `user` |
 | `lib/models/requests/` | Request DTOs, one per write endpoint |
 | `lib/models/responses/order_response/` | `OrderResponseModel`: the shared response for every order operation |

@@ -23,7 +23,6 @@ import 'package:intuitiveorderkioskappflutter/models/responses/order_response/or
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 import 'package:intuitiveorderkioskappflutter/providers/api_providers.dart';
 import 'package:intuitiveorderkioskappflutter/repositories/restaurant_repository.dart';
-import 'package:intuitiveorderkioskappflutter/core/utils/logger.dart';
 import 'package:intuitiveorderkioskappflutter/core/storage/local_storage.dart';
 import 'package:intuitiveorderkioskappflutter/utils/order_id_generator.dart';
 
@@ -173,8 +172,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         state = previousState;
         _showErrorPopup(response.message ?? 'Failed to save order (Status Code: ${response.status_code})');
       }
-    } catch (e, stack) {
-      logger.e('Error saving order with dish: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
@@ -183,7 +181,6 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
   Future<void> addDishToOrder(DishModel dish, {CategoryModel? category, int quantity = 1, double? totalPrice}) async {
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null || currentOrderResponse.order == null) {
-      logger.w('Cannot add dish: No active order found in state.');
       return;
     }
 
@@ -252,8 +249,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         state = previousState;
         _showErrorPopup(response.message ?? 'Failed to add dish to order (Status Code: ${response.status_code})');
       }
-    } catch (e, stack) {
-      logger.e('Error adding dish to order: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
@@ -322,8 +318,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         state = previousState;
         _showErrorPopup(response.message ?? 'Failed to update instruction (Status Code: ${response.status_code})');
       }
-    } catch (e, stack) {
-      logger.e('Error updating instruction: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
@@ -342,8 +337,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         state = previousState;
         _showErrorPopup(response.message ?? 'Failed to update allergens (Status Code: ${response.status_code})');
       }
-    } catch (e, stack) {
-      logger.e('Error updating allergens: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
@@ -394,7 +388,6 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
   Future<void> voidDish(OrderDishModel dish) async {
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null) {
-      logger.w('Cannot void dish: No active order in state.');
       return;
     }
 
@@ -425,8 +418,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         state = previousState;
         _showErrorPopup(response.message ?? 'Failed to void dish (Status Code: ${response.status_code})');
       }
-    } catch (e, stack) {
-      logger.e('Error voiding dish: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
@@ -435,7 +427,6 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
   Future<void> increaseDishQuantityWithInstructionByOne(OrderDishModel dish) async {
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null) {
-      logger.w('Cannot increase dish quantity: No active order in state.');
       return;
     }
 
@@ -470,8 +461,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         state = previousState;
         _showErrorPopup(response.message ?? 'Failed to increase dish quantity (Status Code: ${response.status_code})');
       }
-    } catch (e, stack) {
-      logger.e('Error increasing dish quantity: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
@@ -480,7 +470,6 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
   Future<void> decreaseDishQuantityWithInstructionByOne(OrderDishModel dish) async {
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null) {
-      logger.w('Cannot decrease dish quantity: No active order in state.');
       return;
     }
 
@@ -510,8 +499,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         state = previousState;
         _showErrorPopup(response.message ?? 'Failed to decrease dish quantity (Status Code: ${response.status_code})');
       }
-    } catch (e, stack) {
-      logger.e('Error decreasing dish quantity: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
@@ -520,7 +508,6 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
   Future<void> increaseOrderDishInstructionQuantity(OrderDishInstructionModel instruction) async {
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null) {
-      logger.w('Cannot increase instruction quantity: No active order in state.');
       return;
     }
 
@@ -558,8 +545,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         _showErrorPopup( response.message ?? 'Failed to increase instruction quantity ' '(Status Code: ${response.status_code})',
         );
       }
-    } catch (e, stack) {
-      logger.e('Error increasing instruction quantity: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
@@ -568,7 +554,6 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
   Future<void> decreaseOrderDishInstructionQuantity(OrderDishInstructionModel instruction) async {
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null) {
-      logger.w('Cannot decrease instruction quantity: No active order in state.');
       return;
     }
 
@@ -606,8 +591,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         _showErrorPopup( response.message ?? 'Failed to decrease instruction quantity ' '(Status Code: ${response.status_code})',
         );
       }
-    } catch (e, stack) {
-      logger.e('Error decreasing instruction quantity: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
@@ -616,7 +600,6 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
   Future<void> deleteOrderDishInstruction(OrderDishInstructionModel instruction) async {
     final currentOrderResponse = state.value;
     if (currentOrderResponse == null) {
-      logger.w('Cannot delete instruction: No active order in state.');
       return;
     }
 
@@ -641,8 +624,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         _showErrorPopup( response.message ?? 'Failed to delete instruction ' '(Status Code: ${response.status_code})',
         );
       }
-    } catch (e, stack) {
-      logger.e('Error deleting instruction: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }
@@ -669,8 +651,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
         state = previousState;
         _showErrorPopup(response.message ?? 'Failed to get order details (Status Code: ${response.status_code})');
       }
-    } catch (e, stack) {
-      logger.e('Error in getRestaurantOrderById: $e', error: e, stackTrace: stack);
+    } catch (e) {
       state = previousState;
       _showErrorPopup(_getErrorMessage(e));
     }

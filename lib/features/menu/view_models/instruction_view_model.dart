@@ -5,7 +5,7 @@ import 'package:intuitiveorderkioskappflutter/core/storage/local_storage.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/core/utils/logger.dart';
 import 'package:intuitiveorderkioskappflutter/core/widgets/app_popups.dart';
-import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/order/view_models/order_management_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/instruction_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/option_group_model.dart';
@@ -169,10 +169,7 @@ class InstructionNotifier extends FamilyNotifier<InstructionState, (int?, String
   int getGroupTotalQuantity(OrderDishModel orderDish, int groupID) {
     int total = 0;
     final restaurantData = ref.watch(restaurantAppDataProvider).value;
-    final groupInstructionIds = restaurantData?.instructionList
-        .where((i) => i.group_id == groupID)
-        .map((i) => i.id)
-        .toSet() ?? {};
+    final groupInstructionIds = restaurantData?.instructionList.where((i) => i.group_id == groupID).map((i) => i.id).toSet() ?? {};
 
     for (final orderIns in orderDish.instructions) {
       if ((orderIns.dish_instruction_id != null && groupInstructionIds.contains(orderIns.dish_instruction_id)) ||

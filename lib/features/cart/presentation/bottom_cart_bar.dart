@@ -10,7 +10,7 @@ import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/get_group_id_view_model.dart';
-import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/order/view_models/order_management_view_model.dart';
 
 class BottomCartBar extends ConsumerStatefulWidget {
   const BottomCartBar({super.key});
@@ -51,6 +51,7 @@ class _BottomCartBarState extends ConsumerState<BottomCartBar> {
     });
 
     final cart = ref.watch(cartProvider);
+    final int totalItemCount = cart.items.fold<int>(0, (sum, item) => sum + (item.quantity ?? 1));
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final double screenWidth = MediaQuery.of(context).size.width;
@@ -85,6 +86,24 @@ class _BottomCartBarState extends ConsumerState<BottomCartBar> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  if (totalItemCount > 0) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.orange,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '$totalItemCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
               Text(

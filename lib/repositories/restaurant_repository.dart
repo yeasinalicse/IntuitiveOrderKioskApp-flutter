@@ -3,7 +3,6 @@ import 'package:intuitiveorderkioskappflutter/models/requests/UpdateOrderDishIns
 import 'package:intuitiveorderkioskappflutter/models/requests/delete_restaurant_order_dish_Instruction_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/responses/order_response/order_response_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/restaurant_app_data_model.dart';
-import 'package:intuitiveorderkioskappflutter/core/utils/logger.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_restaurant_order_with_dish.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/add_dish_on_order_request.dart';
 import 'package:intuitiveorderkioskappflutter/models/requests/save_update_order_dish_instruction_request.dart';
@@ -13,7 +12,6 @@ import 'package:intuitiveorderkioskappflutter/models/requests/update_dish_quanti
 
 class RestaurantRepository {
   final RestaurantRemoteDataSource _remoteDataSource;
-
   RestaurantRepository(this._remoteDataSource);
 
   Future<RestaurantAppDataModel> getApplicationData() async {
@@ -21,7 +19,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.getApplicationData();
       return RestaurantAppDataModel.fromJson(data);
     } catch (e) {
-      logger.e('Error in getApplicationData: $e');
       throw Exception('Error fetching application data: $e');
     }
   }
@@ -31,7 +28,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.saveRestaurantOrderWithDish(request);
       return OrderResponseModel.fromJson(data);
     } catch (e) {
-      logger.e('Error in saveRestaurantOrderWithDish: $e');
       rethrow;
     }
   }
@@ -41,7 +37,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.addDishOnOrder(request);
       return OrderResponseModel.fromJson(data);
     } catch (e) {
-      logger.e('Error in addDishOnOrder: $e');
       rethrow;
     }
   }
@@ -51,7 +46,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.saveUpdateOrderDishInstruction(request);
       return OrderResponseModel.fromJson(data);
     } catch (e) {
-      logger.e('Error in saveUpdateOrderDishInstruction: $e');
       rethrow;
     }
   }
@@ -64,7 +58,6 @@ class RestaurantRepository {
       }
       return null;
     } catch (e) {
-      logger.e('Error in getRestaurantDishImageById: $e');
       rethrow;
     }
   }
@@ -74,7 +67,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.getRestaurantOrderById(request);
       return OrderResponseModel.fromJson(data);
     } catch (e) {
-      logger.e('Error in getRestaurantOrderById: $e');
       rethrow;
     }
   }
@@ -84,7 +76,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.updateOrderDishAllergens(request);
       return OrderResponseModel.fromJson(data);
     } catch (e) {
-      logger.e('Error in updateOrderDishAllergens: $e');
       rethrow;
     }
   }
@@ -94,7 +85,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.voidDish(request);
       return OrderResponseModel.fromJson(data);
     } catch (e) {
-      logger.e('Error in voidDish: $e');
       rethrow;
     }
   }
@@ -104,7 +94,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.increaseDishQuantityWithInstructionByOne(request);
       return OrderResponseModel.fromJson(data);
     } catch (e) {
-      logger.e('Error in increaseDishQuantityWithInstructionByOne: $e');
       rethrow;
     }
   }
@@ -114,7 +103,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.decreaseDishQuantityWithInstructionByOne(request);
       return OrderResponseModel.fromJson(data);
     } catch (e) {
-      logger.e('Error in decreaseDishQuantityWithInstructionByOne: $e');
       rethrow;
     }
   }
@@ -124,7 +112,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.updateOrderDishInstructionQuantity(request);
       return OrderResponseModel.fromJson(data);
     } catch (e) {
-      logger.e('Error in updateOrderDishInstructionQuantity: $e');
       rethrow;
     }
   }
@@ -134,7 +121,6 @@ class RestaurantRepository {
       final data = await _remoteDataSource.deleteRestaurantOrderDishInstructionAndGetOrder(request);
       return OrderResponseModel.fromJson(data);
       } catch (e) {
-      logger.e('Error in deleteRestaurantOrderDishInstructionAndGetOrder: $e');
       rethrow;
     }
   }

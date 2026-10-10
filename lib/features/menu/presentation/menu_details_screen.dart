@@ -5,7 +5,7 @@ import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/option_group_pop_up.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/dish_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/get_group_id_view_model.dart';
-import 'package:intuitiveorderkioskappflutter/features/menu/view_models/order_management_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/features/order/view_models/order_management_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/dish_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/order/order_dish_model.dart';
@@ -431,16 +431,18 @@ class MenuDetailsScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: data.allergenList.length,
-                separatorBuilder: (context, index) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final a = data.allergenList[index];
+              Wrap(
+                spacing: 10.0,
+                runSpacing: 10.0,
+                children: data.allergenList.map((a) {
                   final allergenName = a.name ?? '';
+                  if (allergenName.isEmpty) return const SizedBox.shrink();
                   final allergenContent = AppStrings.allergenWarning(allergenName);
-                  final isSelected = currentDishAllergens != null && (currentDishAllergens.contains(allergenName) || currentDishAllergens.split('\n').any((e) => e.trim().contains(allergenContent)));
+                  final isSelected = currentDishAllergens != null &&
+                      (currentDishAllergens.contains(allergenName) ||
+                          currentDishAllergens
+                              .split('\n')
+                              .any((e) => e.trim().contains(allergenContent)));
 
                   return InkWell(
                     onTap: () {
@@ -450,41 +452,48 @@ class MenuDetailsScreen extends ConsumerWidget {
                             allergenName: allergenName,
                           );
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+                    borderRadius: BorderRadius.circular(24),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.orange.withValues(alpha: 0.12)
+                            : theme.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.orange
+                              : theme.dividerColor.withValues(alpha: 0.4),
+                          width: isSelected ? 1.5 : 1.0,
+                        ),
+                      ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.orange : Colors.transparent,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: isSelected ? AppColors.orange : theme.dividerColor,
-                                width: 2,
-                              ),
-                            ),
-                            child: isSelected
-                                ? const Icon(Icons.check, size: 16, color: Colors.white)
-                                : null,
+                          Icon(
+                            isSelected ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                            size: 18,
+                            color: isSelected
+                                ? AppColors.orange
+                                : theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Text(
-                              allergenName,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                color: isSelected ? AppColors.orange : theme.textTheme.bodyLarge?.color,
-                              ),
+                          const SizedBox(width: 8),
+                          Text(
+                            allergenName,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected
+                                  ? AppColors.orange
+                                  : theme.textTheme.bodyLarge?.color,
                             ),
                           ),
                         ],
                       ),
                     ),
                   );
-                },
+                }).toList(),
               ),
             ],
           ),
@@ -515,7 +524,8 @@ class _DishPriceAndQuantityControl extends ConsumerWidget {
 
     final currentOrderDish = OrderManagementNotifier.findCurrentOrderDish(orderResponse, dish, dishId);
 
-    final currentQuantity = currentOrderDish?.quantity ?? (orderResponse?.orderDish.where((d) => d.restaurant_dish_id == dish.id || d.id == dishId).fold<int>(0, (sum, d) => sum + (d.quantity ?? 1)) ?? 1);
+    final currentQuantity = currentOrderDish?.quantity ??
+        (orderResponse?.orderDish.where((d) => d.restaurant_dish_id == dish.id || d.id == dishId).fold<int>(0, (sum, d) => sum + (d.quantity ?? 1)) ?? 1);
 
     final String computedPriceText;
     if (currentOrderDish?.total_price != null) {
@@ -523,7 +533,7 @@ class _DishPriceAndQuantityControl extends ConsumerWidget {
     } else if (dish.price != null) {
       computedPriceText = '${AppStrings.currencySymbol}${(dish.price! * currentQuantity).toStringAsFixed(2)}';
     } else {
-      computedPriceText =fallbackPrice;
+      computedPriceText = fallbackPrice;
     }
 
     return Row(
@@ -558,9 +568,7 @@ class _DishPriceAndQuantityControl extends ConsumerWidget {
               IconButton(
                 onPressed: () {
                   if (currentOrderDish != null) {
-                    if ((currentOrderDish.quantity ?? 1) > 1) {
-                      ref.read(orderManagementProvider.notifier).decreaseDishQuantityWithInstructionByOne(currentOrderDish);
-                    }
+                    ref.read(orderManagementProvider.notifier).decreaseDishQuantityWithInstructionByOne(currentOrderDish);
                   }
                 },
                 icon: const Icon(Icons.remove_rounded, color: AppColors.orange, size: 20),

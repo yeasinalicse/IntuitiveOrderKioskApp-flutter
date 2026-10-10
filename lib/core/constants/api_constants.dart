@@ -12,4 +12,8 @@ class ApiConstants {
   static const String decreaseOrDeleteDishQuantityWithInstructionByOne = '/DecreaseOrDeleteDishQuantityWithInstructionByOne';
   static const String deleteRestaurantOrderDishInstructionAndGetOrder = '/DeleteRestaurantOrderDishInstructionAndGetOrder';
   static const String updateOrderDishInstructionQuantity = '/UpdateOrderDishInstructionQuantity';
+  static const String getDojoCardPaymentRequest = '/GetDojoCardPaymentRequest';
+  static const String deleteDojoCardPaymentRequestByRequestID = '/DeleteDojoCardPaymentRequestByRequestID';
+  static const String insertDojoCardPaymentRequest = '/InsertDojoCardPaymentRequest';
+  static const String updateDojoCardPaymentRequestPaymentStatusByRequestID = '/UpdateDojoCardPaymentRequestPaymentStatusByRequestID';
 }

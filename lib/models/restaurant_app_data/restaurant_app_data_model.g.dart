@@ -272,6 +272,15 @@ _RestaurantAppDataModel _$RestaurantAppDataModelFromJson(
           )
           .toList() ??
       const [],
+  dojo_Card_Payment_Sense_TerminalList:
+      (json['dojo_Card_Payment_Sense_TerminalList'] as List<dynamic>?)
+          ?.map(
+            (e) => DojoCardPaymentSenseTerminal.fromJson(
+              e as Map<String, dynamic>,
+            ),
+          )
+          .toList() ??
+      const [],
   token: json['token'] as String?,
   message: json['message'] as String?,
 );
@@ -332,6 +341,8 @@ Map<String, dynamic> _$RestaurantAppDataModelToJson(
   'computerUser': instance.computerUser,
   'computerName': instance.computerName,
   'tab_Order_Time_SettingsList': instance.tab_Order_Time_SettingsList,
+  'dojo_Card_Payment_Sense_TerminalList':
+      instance.dojo_Card_Payment_Sense_TerminalList,
   'token': instance.token,
   'message': instance.message,
 };

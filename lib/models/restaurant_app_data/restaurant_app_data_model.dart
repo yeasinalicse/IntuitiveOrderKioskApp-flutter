@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../dojo_card_payment_model.dart';
 import 'restaurant/restaurant_model.dart';
 import 'restaurant/restaurant_settings_model.dart';
 import 'restaurant/terminal_model.dart';
@@ -103,6 +104,8 @@ abstract class RestaurantAppDataModel with _$RestaurantAppDataModel {
     String? computerUser,
     String? computerName,
     @Default([]) List<TabOrderTimeSettingsModel> tab_Order_Time_SettingsList,
+    @JsonKey(name: 'dojo_Card_Payment_Sense_TerminalList')
+    @Default([]) List<DojoCardPaymentSenseTerminal> dojo_Card_Payment_Sense_TerminalList,
     String? token,
     String? message,
   }) = _RestaurantAppDataModel;
