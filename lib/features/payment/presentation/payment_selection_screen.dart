@@ -2,16 +2,20 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intuitiveorderkioskappflutter/core/storage/local_storage.dart';
 import 'package:intuitiveorderkioskappflutter/core/widgets/app_popups.dart';
 import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
-import 'package:intuitiveorderkioskappflutter/features/payment/dojo/presentation/dojo_payment_status_dialog.dart';
+import 'package:intuitiveorderkioskappflutter/features/order/view_models/order_management_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/order_summary_card.dart';
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/payment_decorations.dart';
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/payment_option_button.dart';
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/payment_sticky_footer.dart';
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/payment_trust_section.dart';
+import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/terminal_selection_dialog.dart';
+import 'package:intuitiveorderkioskappflutter/models/dojo_card_payment_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
+import 'package:intuitiveorderkioskappflutter/utils/order_id_generator.dart';
 
 class PaymentSelectionScreen extends ConsumerWidget {
   const PaymentSelectionScreen({super.key});
@@ -215,16 +219,47 @@ void _startCardPayment(BuildContext context, WidgetRef ref) {
       return;
     }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.75),
-      builder: (dialogContext) => DojoPaymentStatusDialog(
-        terminal: terminals.first,
-        amount: ref.read(cartProvider).totalPrice,
-        onCancel: () => Navigator.of(dialogContext).pop(),
-      ),
-    );
+    void navigateToDojoPayment(DojoCardPaymentSenseTerminal terminal) {
+      final amount = ref.read(cartProvider).totalPrice;
+      final orderId = ref.read(orderManagementProvider).value?.order?.id ?? OrderIdGenerator.generate();
+      final currency = terminal.currency.isNotEmpty ? terminal.currency : 'GBP';
+      final restaurantOrderPolicyId = ref.read(localStorageProvider).getQuickOrderPolicyId() ?? 0;
+      final apiModel = restaurantData?.restaurantApiList.firstOrNull;
+      final apiUrl = apiModel?.api_url ?? '';
+      final apiKey = apiModel?.api_key ?? '';
+      final payAtCounterConfig = restaurantData?.dojo_Card_Pay_At_Counter_ConfigurationList.firstOrNull;
+      final softwareHouseId = payAtCounterConfig?.software_house_id ?? '';
+      final installerId = payAtCounterConfig?.installer_id ?? '';
+
+      context.push('/dojo-payment', extra: {
+        'terminal': terminal,
+        'amount': amount,
+        'orderId': orderId,
+        'currency': currency,
+        'restaurantOrderPolicyId': restaurantOrderPolicyId,
+        'apiUrl': apiUrl,
+        'apiKey': apiKey,
+        'softwareHouseId': softwareHouseId,
+        'installerId': installerId,
+        'tid': terminal.tid,
+      });
+    }
+
+    if (terminals.length > 1) {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (dialogContext) => TerminalSelectionDialog(
+          terminals: terminals,
+          onTerminalSelected: (terminal) {
+            Navigator.of(dialogContext).pop();
+            navigateToDojoPayment(terminal);
+          },
+        ),
+      );
+    } else {
+      navigateToDojoPayment(terminals.first);
+    }
     return;
   }
 
@@ -236,4 +271,3 @@ void _startCardPayment(BuildContext context, WidgetRef ref) {
     message: 'No card payment terminal is enabled for this restaurant.',
   );
 }
-

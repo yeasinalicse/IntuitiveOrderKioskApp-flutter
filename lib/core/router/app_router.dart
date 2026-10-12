@@ -5,6 +5,7 @@ import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/core/widgets/main_layout.dart';
 import 'package:intuitiveorderkioskappflutter/features/order/presentation/order_success_screen.dart';
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/payment_selection_screen.dart';
+import 'package:intuitiveorderkioskappflutter/features/payment/dojo/presentation/dojo_payment_screen.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/presentation/menu_details_screen.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/dish_fragment.dart';
 import 'package:intuitiveorderkioskappflutter/features/welcome/presentation/welcome_screen.dart';
@@ -91,6 +92,24 @@ class AppRouter {
       GoRoute(
         path: '/checkout',
         builder: (context, state) => const PaymentSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/dojo-payment',
+        builder: (context, state) {
+          final extras = state.extra as Map<String, dynamic>;
+          return DojoPaymentScreen(
+            terminal: extras['terminal'],
+            amount: extras['amount'],
+            orderId: extras['orderId'],
+            currency: extras['currency'],
+            restaurantOrderPolicyId: extras['restaurantOrderPolicyId'],
+            apiUrl: extras['apiUrl'],
+            apiKey: extras['apiKey'],
+            softwareHouseId: extras['softwareHouseId'],
+            installerId: extras['installerId'],
+            tid: extras['tid'],
+          );
+        },
       ),
       GoRoute(
         path: '/success',

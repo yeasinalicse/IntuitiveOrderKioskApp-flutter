@@ -567,7 +567,7 @@ class _DishPriceAndQuantityControl extends ConsumerWidget {
             children: [
               IconButton(
                 onPressed: () {
-                  if (currentOrderDish != null) {
+                  if (currentOrderDish != null && currentQuantity > 1) {
                     ref.read(orderManagementProvider.notifier).decreaseDishQuantityWithInstructionByOne(currentOrderDish);
                   }
                 },

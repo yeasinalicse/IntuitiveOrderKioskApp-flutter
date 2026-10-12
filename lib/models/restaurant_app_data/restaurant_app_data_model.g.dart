@@ -281,6 +281,15 @@ _RestaurantAppDataModel _$RestaurantAppDataModelFromJson(
           )
           .toList() ??
       const [],
+  dojo_Card_Pay_At_Counter_ConfigurationList:
+      (json['dojo_Card_Pay_At_Counter_ConfigurationList'] as List<dynamic>?)
+          ?.map(
+            (e) => DojoCardPayAtCounterConfiguration.fromJson(
+              e as Map<String, dynamic>,
+            ),
+          )
+          .toList() ??
+      const [],
   token: json['token'] as String?,
   message: json['message'] as String?,
 );
@@ -343,6 +352,8 @@ Map<String, dynamic> _$RestaurantAppDataModelToJson(
   'tab_Order_Time_SettingsList': instance.tab_Order_Time_SettingsList,
   'dojo_Card_Payment_Sense_TerminalList':
       instance.dojo_Card_Payment_Sense_TerminalList,
+  'dojo_Card_Pay_At_Counter_ConfigurationList':
+      instance.dojo_Card_Pay_At_Counter_ConfigurationList,
   'token': instance.token,
   'message': instance.message,
 };

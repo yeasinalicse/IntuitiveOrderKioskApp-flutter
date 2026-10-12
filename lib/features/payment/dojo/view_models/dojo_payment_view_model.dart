@@ -1,7 +1,9 @@
 import 'dart:async';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intuitiveorderkioskappflutter/models/dojo_card_payment_model.dart';
 import 'package:intuitiveorderkioskappflutter/repositories/dojo_payment_repository.dart';
+import 'package:intuitiveorderkioskappflutter/utils/order_id_generator.dart';
 
 class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
   final DojoPaymentRepository _repository;
@@ -21,7 +23,15 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
     required String softwareHouseId,
     required String installerId,
     required String tid,
+    required String orderId,
+    required double amount,
+    required String currency,
+    required int restaurantOrderPolicyId,
   }) async {
+    if (state.isProcessing) {
+      return;
+    }
+
     await stopPolling();
 
     state = state.copyWith(
@@ -33,6 +43,35 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
       requestId: '',
       errorMessage: '',
     );
+
+    try {
+      final requestId = OrderIdGenerator.generate();
+      final request = DojoCardPaymentRequest(
+        id: 0,
+        order_id: orderId,
+        transaction_type: 'SALE',
+        amount: amount,
+        currency: currency.isNotEmpty ? currency : 'GBP',
+        cardholder_Not_Present: false,
+        card_tid: tid,
+        location_url: apiUrl,
+        request_id: requestId,
+        terminal_id: terminalId,
+        created_at: DateTime.now(),
+        payment_status: 0,
+        restaurant_order_policy_id: restaurantOrderPolicyId,
+      );
+
+      await _repository.insertDojoCardPaymentRequest(request);
+
+      state = state.copyWith(
+        requestId: requestId,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Dojo Insert Payment Request Error: $e');
+      }
+    }
 
     await _pollPayment(
       terminalId: terminalId,
@@ -111,7 +150,12 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
     String requestId = '';
 
     if (response is Map<String, dynamic>) {
-      requestId = response['request_id']?.toString() ?? '';
+      requestId = response['request_id']?.toString() ?? response['requestId']?.toString() ?? '';
+    } else if (response is List && response.isNotEmpty) {
+      final first = response.first;
+      if (first is Map<String, dynamic>) {
+        requestId = first['request_id']?.toString() ?? first['requestId']?.toString() ?? '';
+      }
     }
 
     if (requestId.isEmpty) {
@@ -186,8 +230,7 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
     // Successful Refund
     // -------------------------------------------------------------------------
 
-    if (transactionResult == 'SUCCESSFUL' &&
-        transactionType == 'REFUND') {
+    if (transactionResult == 'SUCCESSFUL' && transactionType == 'REFUND') {
       await _handleSuccessfulRefund(
         requestId: requestId,
         transactionResult: transactionResult,
@@ -330,8 +373,7 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
     required String requestId,
     required String transactionResult,
   }) async {
-    await _repository
-        .updateDojoCardPaymentRequestPaymentStatusByRequestID(
+    await _repository.updateDojoCardPaymentRequestPaymentStatusByRequestID(
       requestId,
       transactionResult,
     );
@@ -414,32 +456,30 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
   }) async {
     await stopPolling();
 
-    if (state.requestId.isEmpty) {
-      state = state.copyWith(
-        isProcessing: false,
-        isCancelled: true,
-      );
-
-      return true;
+    if (state.requestId.isNotEmpty) {
+      try {
+        await _repository.cancelTransaction(
+          apiUrl: apiUrl,
+          apiKey: apiKey,
+          softwareHouseId: softwareHouseId,
+          installerId: installerId,
+          tid: tid,
+          requestId: state.requestId,
+        );
+        await _repository.deleteDojoCardPaymentRequestByRequestID(state.requestId);
+      } catch (e) {
+        if (kDebugMode) {
+          print('Dojo Cancel Error: $e');
+        }
+      }
     }
 
-    final result = await _repository.cancelTransaction(
-      apiUrl: apiUrl,
-      apiKey: apiKey,
-      softwareHouseId: softwareHouseId,
-      installerId: installerId,
-      tid: tid,
-      requestId: state.requestId,
+    state = state.copyWith(
+      isProcessing: false,
+      isCancelled: true,
     );
 
-    if (result) {
-      state = state.copyWith(
-        isProcessing: false,
-        isCancelled: true,
-      );
-    }
-
-    return result;
+    return true;
   }
 
   // ---------------------------------------------------------------------------

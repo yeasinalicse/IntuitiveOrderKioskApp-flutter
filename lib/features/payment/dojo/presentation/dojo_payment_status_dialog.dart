@@ -212,9 +212,7 @@ class DojoPaymentStatusDialog extends StatelessWidget {
     final bool isDone = index < currentStep;
     final bool isActive = index == currentStep;
 
-    final Color dotColor = isDone
-        ? Colors.green
-        : (isActive ? AppColors.primaryOrange : (isDark ? Colors.white24 : Colors.black26));
+    final Color dotColor = isDone ? Colors.green : (isActive ? AppColors.primaryOrange : (isDark ? Colors.white24 : Colors.black26));
 
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 14),

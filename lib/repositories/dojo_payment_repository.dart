@@ -6,9 +6,7 @@ class DojoPaymentRepository {
   DojoPaymentRepository(this._remoteDataSource);
 
   Future<dynamic> getDojoCardPaymentRequest(int terminalId) async {
-    return await _remoteDataSource.getDojoCardPaymentRequest(
-      terminalId,
-    );
+    return await _remoteDataSource.getDojoCardPaymentRequest(terminalId);
   }
 
   Future<dynamic> deleteDojoCardPaymentRequestByRequestID(String requestId) async {
@@ -16,16 +14,11 @@ class DojoPaymentRepository {
   }
 
   Future<dynamic> insertDojoCardPaymentRequest(DojoCardPaymentRequest request) async {
-    return await _remoteDataSource.insertDojoCardPaymentRequest(
-      request,
-    );
+    return await _remoteDataSource.insertDojoCardPaymentRequest(request);
   }
 
   Future<dynamic> updateDojoCardPaymentRequestPaymentStatusByRequestID(String requestId, String transactionResult) async {
-    return await _remoteDataSource.updateDojoCardPaymentRequestPaymentStatusByRequestID(
-      requestId,
-      transactionResult,
-    );
+    return await _remoteDataSource.updateDojoCardPaymentRequestPaymentStatusByRequestID(requestId, transactionResult);
   }
 
   Future<DojoCardPaymentCheckTransactionStatus?> getV2TransactionStatus({

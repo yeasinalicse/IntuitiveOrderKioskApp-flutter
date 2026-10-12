@@ -106,6 +106,8 @@ abstract class RestaurantAppDataModel with _$RestaurantAppDataModel {
     @Default([]) List<TabOrderTimeSettingsModel> tab_Order_Time_SettingsList,
     @JsonKey(name: 'dojo_Card_Payment_Sense_TerminalList')
     @Default([]) List<DojoCardPaymentSenseTerminal> dojo_Card_Payment_Sense_TerminalList,
+    @JsonKey(name: 'dojo_Card_Pay_At_Counter_ConfigurationList')
+    @Default([]) List<DojoCardPayAtCounterConfiguration> dojo_Card_Pay_At_Counter_ConfigurationList,
     String? token,
     String? message,
   }) = _RestaurantAppDataModel;
