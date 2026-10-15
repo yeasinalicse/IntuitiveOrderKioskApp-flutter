@@ -12,8 +12,6 @@ import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widg
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/payment_option_button.dart';
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/payment_sticky_footer.dart';
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/payment_trust_section.dart';
-import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/terminal_selection_dialog.dart';
-import 'package:intuitiveorderkioskappflutter/models/dojo_card_payment_model.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 import 'package:intuitiveorderkioskappflutter/utils/order_id_generator.dart';
 
@@ -207,7 +205,6 @@ void _startCardPayment(BuildContext context, WidgetRef ref) {
   final restaurantData = ref.read(restaurantAppDataProvider).value;
   final settings = restaurantData?.restaurantSettings;
 
-  // Dojo is checked first, so it wins when both providers are enabled.
   if (settings?.dojo_payment_sense == true) {
     final terminals = restaurantData?.dojo_Card_Payment_Sense_TerminalList ?? [];
     if (terminals.isEmpty) {
@@ -219,51 +216,33 @@ void _startCardPayment(BuildContext context, WidgetRef ref) {
       return;
     }
 
-    void navigateToDojoPayment(DojoCardPaymentSenseTerminal terminal) {
-      final amount = ref.read(cartProvider).totalPrice;
-      final orderId = ref.read(orderManagementProvider).value?.order?.id ?? OrderIdGenerator.generate();
-      final currency = terminal.currency.isNotEmpty ? terminal.currency : 'GBP';
-      final restaurantOrderPolicyId = ref.read(localStorageProvider).getQuickOrderPolicyId() ?? 0;
-      final apiModel = restaurantData?.restaurantApiList.firstOrNull;
-      final apiUrl = apiModel?.api_url ?? '';
-      final apiKey = apiModel?.api_key ?? '';
-      final payAtCounterConfig = restaurantData?.dojo_Card_Pay_At_Counter_ConfigurationList.firstOrNull;
-      final softwareHouseId = payAtCounterConfig?.software_house_id ?? '';
-      final installerId = payAtCounterConfig?.installer_id ?? '';
+    // Automatically select the 1st Dojo terminal
+    final terminal = terminals.first;
+    final amount = ref.read(cartProvider).totalPrice;
+    final orderId = ref.read(orderManagementProvider).value?.order?.id ?? OrderIdGenerator.generate();
+    final currency = terminal.currency.isNotEmpty ? terminal.currency : 'GBP';
+    final restaurantOrderPolicyId = ref.read(localStorageProvider).getQuickOrderPolicyId() ?? 0;
+    final apiModel = restaurantData?.restaurantApiList.firstOrNull;
+    final apiUrl = apiModel?.api_url ?? '';
+    final apiKey = apiModel?.api_key ?? '';
+    final payAtCounterConfig = restaurantData?.dojo_Card_Pay_At_Counter_ConfigurationList.firstOrNull;
+    final softwareHouseId = payAtCounterConfig?.software_house_id ?? '';
+    final installerId = payAtCounterConfig?.installer_id ?? '';
 
-      context.push('/dojo-payment', extra: {
-        'terminal': terminal,
-        'amount': amount,
-        'orderId': orderId,
-        'currency': currency,
-        'restaurantOrderPolicyId': restaurantOrderPolicyId,
-        'apiUrl': apiUrl,
-        'apiKey': apiKey,
-        'softwareHouseId': softwareHouseId,
-        'installerId': installerId,
-        'tid': terminal.tid,
-      });
-    }
-
-    if (terminals.length > 1) {
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (dialogContext) => TerminalSelectionDialog(
-          terminals: terminals,
-          onTerminalSelected: (terminal) {
-            Navigator.of(dialogContext).pop();
-            navigateToDojoPayment(terminal);
-          },
-        ),
-      );
-    } else {
-      navigateToDojoPayment(terminals.first);
-    }
+    context.push('/dojo-payment', extra: {
+      'terminal': terminal,
+      'amount': amount,
+      'orderId': orderId,
+      'currency': currency,
+      'restaurantOrderPolicyId': restaurantOrderPolicyId,
+      'apiUrl': apiUrl,
+      'apiKey': apiKey,
+      'softwareHouseId': softwareHouseId,
+      'installerId': installerId,
+      'tid': terminal.tid,
+    });
     return;
   }
-
-  // TODO: NovoPay terminal list is not implemented yet.
 
   AppPopups.showMessage(
     context,

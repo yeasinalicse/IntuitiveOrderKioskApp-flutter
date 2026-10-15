@@ -60,6 +60,12 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     state = const AsyncValue.loading();
     try {
       final terminalId = _terminalId;
+      if (terminalId == null || terminalId == 0) {
+        state = previousState;
+        _showErrorPopup('No terminal configuration was found for this device. Please ensure the terminal exists in the system.');
+        return;
+      }
+
       final orderId = OrderIdGenerator.generate();
       final calculatedTotal = totalPrice ?? (dish.price != null ? dish.price! * quantity : 0.0);
       final now = DateTime.now();
@@ -188,6 +194,12 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     state = const AsyncValue.loading();
     try {
       final terminalId = _terminalId;
+      if (terminalId == null || terminalId == 0) {
+        state = previousState;
+        _showErrorPopup('No terminal configuration was found for this device. Please ensure the terminal exists in the system.');
+        return;
+      }
+
       final platformId = _platformId;
       final now = DateTime.now();
       final calculatedTotal = totalPrice ?? (dish.price != null ? dish.price! * quantity : 0.0);

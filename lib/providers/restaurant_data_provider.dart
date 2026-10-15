@@ -45,7 +45,7 @@ class RestaurantAppDataNotifier extends AsyncNotifier<RestaurantAppDataModel> {
       }
 
       if (!terminalFound) {
-        _showTerminalNotFoundPopup();
+        _showTerminalNotFoundPopup(deviceId);
       }
 
       bool kioskUserFound = false;
@@ -82,15 +82,16 @@ class RestaurantAppDataNotifier extends AsyncNotifier<RestaurantAppDataModel> {
     }
   }
 
-  void _showTerminalNotFoundPopup() {
+  void _showTerminalNotFoundPopup(String? deviceId) {
     void tryShow([int attempts = 0]) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 800), () {
         final context = AppRouter.navigatorKey.currentContext;
         if (context != null && context.mounted) {
           AppPopups.showMessage(
             context,
             title: 'Terminal Not Found',
-            message: 'No terminal configuration was found for this device. Please ensure the terminal exists in the system.',
+            message:
+                'No terminal configuration was found for this device.\n\nDevice ID: ${deviceId ?? 'Unknown'}\n\nPlease ensure the terminal exists in the system.',
             icon: Icons.desktop_access_disabled_rounded,
           );
         } else if (attempts < 10) {
@@ -104,7 +105,7 @@ class RestaurantAppDataNotifier extends AsyncNotifier<RestaurantAppDataModel> {
 
   void _showKioskUserNotFoundPopup() {
     void tryShow([int attempts = 0]) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 800), () {
         final context = AppRouter.navigatorKey.currentContext;
         if (context != null && context.mounted) {
           AppPopups.showMessage(

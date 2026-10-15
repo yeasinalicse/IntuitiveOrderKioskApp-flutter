@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
+import 'package:intuitiveorderkioskappflutter/core/storage/local_storage.dart';
+import 'package:intuitiveorderkioskappflutter/core/widgets/app_popups.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/category_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/dish_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/order/view_models/order_management_view_model.dart';
@@ -123,6 +125,20 @@ class DishFragment extends ConsumerWidget {
         final dish = dishList[dishIndex];
         return GestureDetector(
           onTap: () {
+            final localStorage = ref.read(localStorageProvider);
+            final terminalId = localStorage.getTerminalId();
+            final workingTerminal = ref.read(restaurantAppDataProvider).value?.workingTerminal;
+
+            if (terminalId == null || terminalId == 0 || workingTerminal == null || workingTerminal.id == null || workingTerminal.id == 0) {
+              AppPopups.showMessage(
+                context,
+                title: 'Terminal Not Found',
+                message: 'No terminal configuration was found for this device. Please ensure the terminal exists in the system.',
+                icon: Icons.desktop_access_disabled_rounded,
+              );
+              return;
+            }
+
             if (dish.is_parent == true) {
               ref.read(dishParentProvider.notifier).setParentDish(dish.id);
             } else {
