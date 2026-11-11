@@ -45,6 +45,7 @@ import 'common/configuration_model.dart';
 import 'common/configuration_type_model.dart';
 import 'common/customer_review_model.dart';
 import 'common/cuisine_model.dart';
+import 'common/slider_image_model.dart';
 part 'restaurant_app_data_model.freezed.dart';
 part 'restaurant_app_data_model.g.dart';
 
@@ -108,6 +109,8 @@ abstract class RestaurantAppDataModel with _$RestaurantAppDataModel {
     @Default([]) List<DojoCardPaymentSenseTerminal> dojo_Card_Payment_Sense_TerminalList,
     @JsonKey(name: 'dojo_Card_Pay_At_Counter_ConfigurationList')
     @Default([]) List<DojoCardPayAtCounterConfiguration> dojo_Card_Pay_At_Counter_ConfigurationList,
+    @JsonKey(name: 'slider_Image_UrlList')
+    @Default([]) List<SliderImageModel> slider_Image_UrlList,
     String? token,
     String? message,
   }) = _RestaurantAppDataModel;

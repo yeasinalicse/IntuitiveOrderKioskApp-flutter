@@ -290,6 +290,11 @@ _RestaurantAppDataModel _$RestaurantAppDataModelFromJson(
           )
           .toList() ??
       const [],
+  slider_Image_UrlList:
+      (json['slider_Image_UrlList'] as List<dynamic>?)
+          ?.map((e) => SliderImageModel.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   token: json['token'] as String?,
   message: json['message'] as String?,
 );
@@ -354,6 +359,7 @@ Map<String, dynamic> _$RestaurantAppDataModelToJson(
       instance.dojo_Card_Payment_Sense_TerminalList,
   'dojo_Card_Pay_At_Counter_ConfigurationList':
       instance.dojo_Card_Pay_At_Counter_ConfigurationList,
+  'slider_Image_UrlList': instance.slider_Image_UrlList,
   'token': instance.token,
   'message': instance.message,
 };

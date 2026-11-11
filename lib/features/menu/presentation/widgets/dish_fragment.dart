@@ -144,6 +144,15 @@ class DishFragment extends ConsumerWidget {
             if (dish.is_parent == true) {
               ref.read(dishParentProvider.notifier).setParentDish(dish.id);
             } else {
+              if (terminalId == null || terminalId == 0 || workingTerminal == null || workingTerminal.id == null || workingTerminal.id == 0) {
+                AppPopups.showMessage(
+                  context,
+                  title: 'Terminal Not Found',
+                  message: 'No terminal configuration was found for this device. Please ensure the terminal exists in the system.',
+                  icon: Icons.desktop_access_disabled_rounded,
+                );
+                return;
+              }
               // Directly add to order instead of navigating to details
               ref.read(orderManagementProvider.notifier).addToOrder(
                 dish,

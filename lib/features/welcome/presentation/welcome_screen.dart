@@ -2,12 +2,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intuitiveorderkioskappflutter/core/constants/app_assets.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/features/cart/view_models/cart_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/dish_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/order/view_models/order_management_view_model.dart';
+import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/common/slider_image_model.dart';
+import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
@@ -21,12 +22,12 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
   int _currentPage = 0;
   Timer? _timer;
 
-  final List<String> _images = [
-    AppAssets.slider1,
-    AppAssets.slider2,
-    AppAssets.slider3,
-    AppAssets.slider4,
-  ];
+  List<String> _imagesFrom(List<SliderImageModel>? sliderImages) {
+    return (sliderImages ?? const <SliderImageModel>[])
+        .map((sliderImage) => sliderImage.image_url?.trim() ?? '').where((imageUrl) => imageUrl.isNotEmpty).toList();
+  }
+
+  List<String> get _currentImages => _imagesFrom(ref.read(restaurantAppDataProvider).value?.slider_Image_UrlList);
 
   @override
   void initState() {
@@ -36,7 +37,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (_currentPage < _images.length - 1) {
+      final images = _currentImages;
+      if (images.length <= 1) return;
+
+      if (_currentPage < images.length - 1) {
         _currentPage++;
       } else {
         _currentPage = 0;
@@ -61,6 +65,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final images = _imagesFrom(ref.watch(restaurantAppDataProvider).value?.slider_Image_UrlList);
+
     return Scaffold(
       body: Stack(
         children: [
@@ -71,22 +77,20 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                 _currentPage = index;
               });
             },
-            itemCount: _images.length,
+            itemCount: images.length,
             itemBuilder: (context, index) {
-              return Image.asset(
-                _images[index],
+              return Image.network(
+                images[index],
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: double.infinity,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: Colors.grey[300],
-                    child: Column(
+                    child: const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.image_not_supported, size: 50),
-                        const SizedBox(height: 10),
-                        Text('Please add ${_images[index]}'),
+                        Icon(Icons.image_not_supported, size: 50),
                       ],
                     ),
                   );
@@ -101,7 +105,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                _images.length,
+                images.length,
                 (index) => AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 5),
