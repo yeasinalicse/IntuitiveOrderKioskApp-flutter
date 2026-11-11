@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
 import 'package:intuitiveorderkioskappflutter/core/storage/local_storage.dart';
+import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/core/widgets/app_popups.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/dish_image_widget.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/category_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/dish_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/order/view_models/order_management_view_model.dart';
@@ -153,71 +155,62 @@ class DishFragment extends ConsumerWidget {
           child: Container(
             decoration: BoxDecoration(
               color: theme.cardTheme.color,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.dividerColor.withValues(alpha: 0.15),
+                width: 1,
+              ),
               boxShadow: theme.brightness == Brightness.light 
                   ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 5))]
                   : null,
             ),
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Text(
-                          '${AppStrings.currencySymbol}${dish.price?.toStringAsFixed(2) ?? '0.00'}',                          
-                          style: TextStyle(
-                            color: theme.textTheme.headlineLarge?.color,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.orange.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const Spacer(),
-                      dish.id == null
-                          ? Icon(Icons.fastfood, color: theme.textTheme.bodyMedium?.color, size: 80)
-                          : ref.watch(dishImageProvider(dish.id!)).when(
-                              data: (base64String) {
-                                if (base64String == null || base64String.isEmpty) {
-                                  return Icon(Icons.fastfood, color: theme.textTheme.bodyMedium?.color, size: 80);
-                                }
-                                try {
-                                  return Image.memory(
-                                    decodeDishImageBase64(base64String),
-                                    height: 80,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.red, size: 80),
-                                  );
-                                } catch (e) {
-                                  return Icon(Icons.broken_image, color: Colors.red, size: 80);
-                                }
-                              },
-                              loading: () => const SizedBox(
-                                height: 80,
-                                width: 80,
-                                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                              ),
-                              error: (error, stackTrace) => Icon(Icons.broken_image, color: Colors.red, size: 80),
-                            ),
-                      const Spacer(),
-                      Text(
-                        dish.name ?? '',
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: theme.textTheme.headlineLarge?.color,
-                          fontSize: 16,
+                      child: Text(
+                        '${AppStrings.currencySymbol}${dish.price?.toStringAsFixed(2) ?? '0.00'}',                          
+                        style: const TextStyle(
+                          color: AppColors.orange,
                           fontWeight: FontWeight.bold,
+                          fontSize: 15,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: Center(
+                      child: DishImageWidget(
+                        dishId: dish.id,
+                        fit: BoxFit.contain,
+                        borderRadius: 8,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    dish.name ?? '',
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: theme.textTheme.headlineLarge?.color,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

@@ -3,17 +3,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/models/dojo_card_payment_model.dart';
 import 'package:intuitiveorderkioskappflutter/repositories/dojo_payment_repository.dart';
-import 'package:intuitiveorderkioskappflutter/utils/order_id_generator.dart';
 
 class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
   final DojoPaymentRepository _repository;
-
   Timer? _pollingTimer;
+  bool _isTerminalProcessed = false;
 
   DojoPaymentViewModel(this._repository) : super(const DojoPaymentState());
 
   // ---------------------------------------------------------------------------
-  // Start Payment
+  // Start Payment (Equivalent to PrepareToPostTransactionAmount in C#)
   // ---------------------------------------------------------------------------
 
   Future<void> startPayment({
@@ -28,24 +27,52 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
     required String currency,
     required int restaurantOrderPolicyId,
   }) async {
-    if (state.isProcessing) {
+    if (state.isProcessing) return;
+
+    await stopPolling();
+    _isTerminalProcessed = false;
+
+    state = const DojoPaymentState(
+      isProcessing: true,
+      notifications: ['Initiating payment on card terminal...'],
+    );
+
+    // 1. Convert amount to minor currency units (e.g. pence for GBP: £10.50 -> 1050)
+    final int amountInMinorUnits = (amount * 100).round();
+
+    // 2. Prepare transaction payload for Dojo PAC terminal API
+    final sentTransaction = DojoCardPaymentSentTransaction(
+      amount: amountInMinorUnits,
+      transactionType: 'SALE',
+      currency: currency.isNotEmpty ? currency : 'GBP',
+      cardholderNotPresent: false,
+      tid: tid,
+    );
+
+    // 3. Post transaction directly to the Dojo card terminal
+    final postResponse = await _repository.postV2Transactions(
+      apiUrl: apiUrl,
+      apiKey: apiKey,
+      softwareHouseId: softwareHouseId,
+      installerId: installerId,
+      tid: tid,
+      transaction: sentTransaction,
+    );
+
+    if (postResponse == null || postResponse.requestId.isEmpty) {
+      state = state.copyWith(
+        isProcessing: false,
+        isFailed: true,
+        errorMessage: 'Card terminal failed to respond. Please check terminal connection and host settings.',
+      );
       return;
     }
 
-    await stopPolling();
+    final String requestId = postResponse.requestId;
+    final String locationUrl = postResponse.location;
 
-    state = state.copyWith(
-      isProcessing: true,
-      isCompleted: false,
-      isFailed: false,
-      isCancelled: false,
-      transactionResult: '',
-      requestId: '',
-      errorMessage: '',
-    );
-
+    // 4. Record payment request in local database/backend
     try {
-      final requestId = OrderIdGenerator.generate();
       final request = DojoCardPaymentRequest(
         id: 0,
         order_id: orderId,
@@ -54,7 +81,7 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
         currency: currency.isNotEmpty ? currency : 'GBP',
         cardholder_Not_Present: false,
         card_tid: tid,
-        location_url: apiUrl,
+        location_url: locationUrl,
         request_id: requestId,
         terminal_id: terminalId,
         created_at: DateTime.now(),
@@ -63,18 +90,19 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
       );
 
       await _repository.insertDojoCardPaymentRequest(request);
-
-      state = state.copyWith(
-        requestId: requestId,
-      );
     } catch (e) {
       if (kDebugMode) {
         print('Dojo Insert Payment Request Error: $e');
       }
     }
 
-    await _pollPayment(
-      terminalId: terminalId,
+    state = state.copyWith(
+      requestId: requestId,
+      notifications: ['Please insert, tap or swipe card on terminal...'],
+    );
+
+    // 5. Start polling status
+    _schedulePoll(
       apiUrl: apiUrl,
       apiKey: apiKey,
       softwareHouseId: softwareHouseId,
@@ -84,303 +112,156 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
   }
 
   // ---------------------------------------------------------------------------
-  // Payment Polling
+  // Polling Loop
   // ---------------------------------------------------------------------------
 
-  Future<void> _pollPayment({
-    required int terminalId,
+  void _schedulePoll({
     required String apiUrl,
     required String apiKey,
     required String softwareHouseId,
     required String installerId,
     required String tid,
-  }) async {
-    try {
-      await _checkPaymentRequest(
-        terminalId: terminalId,
+  }) {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer(const Duration(seconds: 1), () async {
+      await _checkTransactionStatus(
         apiUrl: apiUrl,
         apiKey: apiKey,
         softwareHouseId: softwareHouseId,
         installerId: installerId,
         tid: tid,
       );
+    });
+  }
 
-      if (!state.isProcessing) {
+  Future<void> _checkTransactionStatus({
+    required String apiUrl,
+    required String apiKey,
+    required String softwareHouseId,
+    required String installerId,
+    required String tid,
+  }) async {
+    final requestId = state.requestId;
+    if (requestId.isEmpty || !state.isProcessing || _isTerminalProcessed) {
+      return;
+    }
+
+    try {
+      final result = await _repository.getV2TransactionStatus(
+        apiUrl: apiUrl,
+        apiKey: apiKey,
+        softwareHouseId: softwareHouseId,
+        installerId: installerId,
+        tid: tid,
+        requestId: requestId,
+      );
+
+      if (result == null) {
+        // Continue polling
+        _schedulePoll(
+          apiUrl: apiUrl,
+          apiKey: apiKey,
+          softwareHouseId: softwareHouseId,
+          installerId: installerId,
+          tid: tid,
+        );
         return;
       }
 
-      _pollingTimer = Timer(
-        const Duration(seconds: 1),
-            () {
-          _pollPayment(
-            terminalId: terminalId,
-            apiUrl: apiUrl,
-            apiKey: apiKey,
-            softwareHouseId: softwareHouseId,
-            installerId: installerId,
-            tid: tid,
-          );
-        },
-      );
-    } catch (e) {
       state = state.copyWith(
-        isProcessing: false,
-        isFailed: true,
-        errorMessage: e.toString(),
+        transactionResult: result.transactionResult,
+        transactionType: result.transactionType,
+        cardholderVerificationMethod: result.cardholderVerificationMethod,
+        notifications: result.notifications.isNotEmpty ? result.notifications : state.notifications,
       );
-    }
-  }
 
-  Future<void> _checkPaymentRequest({
-    required int terminalId,
-    required String apiUrl,
-    required String apiKey,
-    required String softwareHouseId,
-    required String installerId,
-    required String tid,
-  }) async {
-    final response = await _repository.getDojoCardPaymentRequest(
-      terminalId,
-    );
+      final transactionResult = result.transactionResult.trim().toUpperCase();
+      final transactionType = result.transactionType.trim().toUpperCase();
 
-    if (response == null) {
-      return;
-    }
+      // Check if terminal returned a final result
+      if (transactionResult.isNotEmpty) {
+        _isTerminalProcessed = true;
+        await stopPolling();
 
-    String requestId = '';
+        if (transactionResult == 'SUCCESSFUL' && (transactionType == 'SALE' || transactionType.isEmpty)) {
+          await _repository.updateDojoCardPaymentRequestPaymentStatusByRequestID(requestId, 'SUCCESSFUL');
+          state = state.copyWith(
+            isProcessing: false,
+            isCompleted: true,
+            isFailed: false,
+            isCancelled: false,
+            transactionResult: 'SUCCESSFUL',
+            notifications: ['Transaction has been approved. Thank you!'],
+          );
+          return;
+        } else if (transactionResult == 'SUCCESSFUL' && transactionType == 'REFUND') {
+          await _repository.updateDojoCardPaymentRequestPaymentStatusByRequestID(requestId, 'REFUND');
+          state = state.copyWith(
+            isProcessing: false,
+            isCompleted: true,
+            transactionResult: 'REFUND',
+          );
+          return;
+        } else if (transactionResult == 'VOID') {
+          await _repository.updateDojoCardPaymentRequestPaymentStatusByRequestID(requestId, 'VOID');
+          state = state.copyWith(
+            isProcessing: false,
+            isCancelled: true,
+            errorMessage: 'Transaction was voided.',
+          );
+          return;
+        } else if (transactionResult == 'DECLINED') {
+          await _repository.updateDojoCardPaymentRequestPaymentStatusByRequestID(requestId, 'DECLINED');
+          state = state.copyWith(
+            isProcessing: false,
+            isFailed: true,
+            errorMessage: 'Transaction declined by card issuer.',
+          );
+          return;
+        } else {
+          await _repository.updateDojoCardPaymentRequestPaymentStatusByRequestID(requestId, transactionResult);
+          state = state.copyWith(
+            isProcessing: false,
+            isFailed: true,
+            errorMessage: 'Transaction failed with status: $transactionResult',
+          );
+          return;
+        }
+      }
 
-    if (response is Map<String, dynamic>) {
-      requestId = response['request_id']?.toString() ?? response['requestId']?.toString() ?? '';
-    } else if (response is List && response.isNotEmpty) {
-      final first = response.first;
-      if (first is Map<String, dynamic>) {
-        requestId = first['request_id']?.toString() ?? first['requestId']?.toString() ?? '';
+      // Check Signature requirement
+      if (_isSignatureRequired(result.cardholderVerificationMethod)) {
+        state = state.copyWith(signatureRequired: true);
+      }
+
+      // If still processing, schedule next poll
+      if (state.isProcessing && !_isTerminalProcessed) {
+        _schedulePoll(
+          apiUrl: apiUrl,
+          apiKey: apiKey,
+          softwareHouseId: softwareHouseId,
+          installerId: installerId,
+          tid: tid,
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Dojo Status Check Error: $e');
+      }
+      if (state.isProcessing && !_isTerminalProcessed) {
+        _schedulePoll(
+          apiUrl: apiUrl,
+          apiKey: apiKey,
+          softwareHouseId: softwareHouseId,
+          installerId: installerId,
+          tid: tid,
+        );
       }
     }
-
-    if (requestId.isEmpty) {
-      return;
-    }
-
-    state = state.copyWith(
-      requestId: requestId,
-    );
-
-    await _checkTransactionStatus(
-      requestId: requestId,
-      apiUrl: apiUrl,
-      apiKey: apiKey,
-      softwareHouseId: softwareHouseId,
-      installerId: installerId,
-      tid: tid,
-    );
   }
 
   // ---------------------------------------------------------------------------
-  // Transaction Status
-  // ---------------------------------------------------------------------------
-
-  Future<void> _checkTransactionStatus({
-    required String requestId,
-    required String apiUrl,
-    required String apiKey,
-    required String softwareHouseId,
-    required String installerId,
-    required String tid,
-  }) async {
-    final result = await _repository.getV2TransactionStatus(
-      apiUrl: apiUrl,
-      apiKey: apiKey,
-      softwareHouseId: softwareHouseId,
-      installerId: installerId,
-      tid: tid,
-      requestId: requestId,
-    );
-
-    if (result == null) {
-      return;
-    }
-
-    state = state.copyWith(
-      transactionResult: result.transactionResult,
-      transactionType: result.transactionType,
-      cardholderVerificationMethod:
-      result.cardholderVerificationMethod,
-      notifications: result.notifications,
-    );
-
-    final transactionResult = result.transactionResult.toUpperCase();
-
-    final transactionType = result.transactionType.toUpperCase();
-
-    // -------------------------------------------------------------------------
-    // Successful Sale
-    // -------------------------------------------------------------------------
-
-    if (transactionResult == 'SUCCESSFUL' && transactionType == 'SALE') {
-      await _handleSuccessfulSale(
-        requestId: requestId,
-        transactionResult: transactionResult,
-      );
-
-      return;
-    }
-
-    // -------------------------------------------------------------------------
-    // Successful Refund
-    // -------------------------------------------------------------------------
-
-    if (transactionResult == 'SUCCESSFUL' && transactionType == 'REFUND') {
-      await _handleSuccessfulRefund(
-        requestId: requestId,
-        transactionResult: transactionResult,
-      );
-
-      return;
-    }
-
-    // -------------------------------------------------------------------------
-    // Void
-    // -------------------------------------------------------------------------
-
-    if (transactionResult == 'VOID') {
-      await _handleVoid(
-        requestId: requestId,
-        transactionResult: transactionResult,
-      );
-
-      return;
-    }
-
-    // -------------------------------------------------------------------------
-    // Declined
-    // -------------------------------------------------------------------------
-
-    if (transactionResult == 'DECLINED') {
-      await _handleDeclined(
-        requestId: requestId,
-        transactionResult: transactionResult,
-      );
-
-      return;
-    }
-
-    // -------------------------------------------------------------------------
-    // Signature Required
-    // -------------------------------------------------------------------------
-
-    if (_isSignatureRequired(
-      result.cardholderVerificationMethod,
-    )) {
-      state = state.copyWith(
-        signatureRequired: true,
-      );
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Successful Sale
-  // ---------------------------------------------------------------------------
-
-  Future<void> _handleSuccessfulSale({
-    required String requestId,
-    required String transactionResult,
-  }) async {
-    await _updatePaymentStatus(
-      requestId: requestId,
-      transactionResult: transactionResult,
-    );
-
-    await stopPolling();
-
-    state = state.copyWith(
-      isProcessing: false,
-      isCompleted: true,
-      isFailed: false,
-      isCancelled: false,
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Successful Refund
-  // ---------------------------------------------------------------------------
-
-  Future<void> _handleSuccessfulRefund({
-    required String requestId,
-    required String transactionResult,
-  }) async {
-    await _updatePaymentStatus(
-      requestId: requestId,
-      transactionResult: transactionResult,
-    );
-
-    await stopPolling();
-
-    state = state.copyWith(
-      isProcessing: false,
-      isCompleted: true,
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Void
-  // ---------------------------------------------------------------------------
-
-  Future<void> _handleVoid({
-    required String requestId,
-    required String transactionResult,
-  }) async {
-    await _updatePaymentStatus(
-      requestId: requestId,
-      transactionResult: transactionResult,
-    );
-
-    await stopPolling();
-
-    state = state.copyWith(
-      isProcessing: false,
-      isCancelled: true,
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Declined
-  // ---------------------------------------------------------------------------
-
-  Future<void> _handleDeclined({
-    required String requestId,
-    required String transactionResult,
-  }) async {
-    await _updatePaymentStatus(
-      requestId: requestId,
-      transactionResult: transactionResult,
-    );
-
-    await stopPolling();
-
-    state = state.copyWith(
-      isProcessing: false,
-      isFailed: true,
-      errorMessage: 'Transaction declined.',
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Update Payment Status
-  // ---------------------------------------------------------------------------
-
-  Future<void> _updatePaymentStatus({
-    required String requestId,
-    required String transactionResult,
-  }) async {
-    await _repository.updateDojoCardPaymentRequestPaymentStatusByRequestID(
-      requestId,
-      transactionResult,
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Signature
+  // Signature Actions
   // ---------------------------------------------------------------------------
 
   Future<bool> acceptSignature({
@@ -390,9 +271,7 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
     required String installerId,
     required String tid,
   }) async {
-    if (state.requestId.isEmpty) {
-      return false;
-    }
+    if (state.requestId.isEmpty) return false;
 
     final result = await _repository.putV2Signature(
       accepted: true,
@@ -405,11 +284,8 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
     );
 
     if (result) {
-      state = state.copyWith(
-        signatureRequired: false,
-      );
+      state = state.copyWith(signatureRequired: false);
     }
-
     return result;
   }
 
@@ -420,9 +296,7 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
     required String installerId,
     required String tid,
   }) async {
-    if (state.requestId.isEmpty) {
-      return false;
-    }
+    if (state.requestId.isEmpty) return false;
 
     final result = await _repository.putV2Signature(
       accepted: false,
@@ -435,11 +309,8 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
     );
 
     if (result) {
-      state = state.copyWith(
-        signatureRequired: false,
-      );
+      state = state.copyWith(signatureRequired: false);
     }
-
     return result;
   }
 
@@ -482,32 +353,20 @@ class DojoPaymentViewModel extends StateNotifier<DojoPaymentState> {
     return true;
   }
 
-  // ---------------------------------------------------------------------------
-  // Stop Polling
-  // ---------------------------------------------------------------------------
-
   Future<void> stopPolling() async {
     _pollingTimer?.cancel();
     _pollingTimer = null;
   }
 
-  // ---------------------------------------------------------------------------
-  // Signature Required Check
-  // ---------------------------------------------------------------------------
-
   bool _isSignatureRequired(String verificationMethod) {
     final value = verificationMethod.trim().toUpperCase();
-
-    return value.isNotEmpty &&
-        value != 'NONE' &&
-        value != 'NO_SIGNATURE';
+    return value == 'SIGNATURE';
   }
 
   @override
   void dispose() {
     _pollingTimer?.cancel();
     _pollingTimer = null;
-
     super.dispose();
   }
 }

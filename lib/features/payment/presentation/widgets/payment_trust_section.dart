@@ -11,7 +11,12 @@ class PaymentTrustSection extends StatelessWidget {
       children: [
         Text(
           'WE ACCEPT SECURE PAYMENTS VIA',
-          style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 2),
+          style: TextStyle(
+            color: isDark ? Colors.white24 : Colors.black26,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+          ),
         ),
         const SizedBox(height: 30),
         Wrap(
@@ -21,7 +26,7 @@ class PaymentTrustSection extends StatelessWidget {
           children: [
             _buildBrandBadge(AppAssets.visaLogo, isDark),
             _buildMastercardBadge(isDark),
-            _buildIconBadge(Icons.apple, isDark ? Colors.white : Colors.black, isDark)
+            _buildIconBadge(Icons.apple, isDark ? Colors.white : Colors.black, isDark),
           ],
         ),
       ],
@@ -31,13 +36,33 @@ class PaymentTrustSection extends StatelessWidget {
   Widget _buildBrandBadge(String asset, bool isDark) {
     return Container(
       height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
       ),
-      child: Image.asset(asset, fit: BoxFit.contain, width: 60),
+      child: Image.asset(
+        asset,
+        fit: BoxFit.contain,
+        width: 60,
+        errorBuilder: (context, error, stackTrace) => _buildVisaFallback(isDark),
+      ),
+    );
+  }
+
+  Widget _buildVisaFallback(bool isDark) {
+    return Center(
+      child: Text(
+        'VISA',
+        style: TextStyle(
+          color: isDark ? Colors.white : const Color(0xFF1A1F71),
+          fontWeight: FontWeight.w900,
+          fontStyle: FontStyle.italic,
+          fontSize: 20,
+          letterSpacing: 2,
+        ),
+      ),
     );
   }
 

@@ -17,8 +17,46 @@ class DojoPaymentRepository {
     return await _remoteDataSource.insertDojoCardPaymentRequest(request);
   }
 
-  Future<dynamic> updateDojoCardPaymentRequestPaymentStatusByRequestID(String requestId, String transactionResult) async {
-    return await _remoteDataSource.updateDojoCardPaymentRequestPaymentStatusByRequestID(requestId, transactionResult);
+  Future<dynamic> updateDojoCardPaymentRequestPaymentStatusByRequestID(
+    String requestId,
+    String transactionResult,
+  ) async {
+    return await _remoteDataSource.updateDojoCardPaymentRequestPaymentStatusByRequestID(
+      requestId,
+      transactionResult,
+    );
+  }
+
+  Future<DojoCardPayment?> getDojoCardTerminalList({
+    required String apiUrl,
+    required String apiKey,
+    required String softwareHouseId,
+    required String installerId,
+  }) async {
+    return await _remoteDataSource.getDojoCardTerminalList(
+      apiUrl: apiUrl,
+      apiKey: apiKey,
+      softwareHouseId: softwareHouseId,
+      installerId: installerId,
+    );
+  }
+
+  Future<DojoCardPaymentPostRequestTransaction?> postV2Transactions({
+    required String apiUrl,
+    required String apiKey,
+    required String softwareHouseId,
+    required String installerId,
+    required String tid,
+    required DojoCardPaymentSentTransaction transaction,
+  }) async {
+    return await _remoteDataSource.postV2Transactions(
+      apiUrl: apiUrl,
+      apiKey: apiKey,
+      softwareHouseId: softwareHouseId,
+      installerId: installerId,
+      tid: tid,
+      transaction: transaction,
+    );
   }
 
   Future<DojoCardPaymentCheckTransactionStatus?> getV2TransactionStatus({

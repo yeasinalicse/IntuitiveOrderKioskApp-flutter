@@ -33,14 +33,11 @@ class DojoPaymentStatusDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
     final Color cardBg = isDark ? AppColors.cardBackground : AppColors.white;
     final Color textColor = isDark ? AppColors.textPrimary : AppColors.black;
     final Color secondaryTextColor = isDark ? AppColors.textSecondary : Colors.black87;
 
-    final String terminalName = terminal.display_name.isNotEmpty
-        ? terminal.display_name
-        : (terminal.tid.isNotEmpty ? terminal.tid : 'Terminal #${terminal.id}');
+    final String terminalName = terminal.display_name.isNotEmpty ? terminal.display_name : (terminal.tid.isNotEmpty ? terminal.tid : 'Terminal #${terminal.id}');
 
     return PopScope(
       canPop: false,
@@ -226,10 +223,8 @@ class DojoPaymentStatusDialog extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: dotColor, width: 2),
             ),
-            child: isDone
-                ? const Icon(Icons.check_rounded, size: 16, color: Colors.green)
-                : (isActive
-                    ? Center(
+            child: isDone ? const Icon(Icons.check_rounded, size: 16, color: Colors.green) : (
+                isActive ? Center(
                         child: Container(
                           width: 8,
                           height: 8,

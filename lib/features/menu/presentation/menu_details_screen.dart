@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intuitiveorderkioskappflutter/core/theme/app_colors.dart';
 import 'package:intuitiveorderkioskappflutter/core/constants/app_strings.dart';
+import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/dish_image_widget.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/presentation/widgets/option_group_pop_up.dart';
-import 'package:intuitiveorderkioskappflutter/features/menu/view_models/dish_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/menu/view_models/get_group_id_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/features/order/view_models/order_management_view_model.dart';
 import 'package:intuitiveorderkioskappflutter/models/restaurant_app_data/menu/category_model.dart';
@@ -85,47 +85,6 @@ class MenuDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildHeroSection(BuildContext context, WidgetRef ref, ThemeData theme) {
-    Widget imageWidget;
-    if (dish.id == null) {
-      imageWidget = dishImage.isNotEmpty
-          ? Image.asset(dishImage, height: 200, fit: BoxFit.contain)
-          : const Icon(Icons.fastfood, size: 120, color: AppColors.orange);
-    } else {
-      imageWidget = ref.watch(dishImageProvider(dish.id!)).when(
-            data: (base64String) {
-              if (base64String == null || base64String.isEmpty) {
-                return dishImage.isNotEmpty
-                    ? Image.asset(dishImage, height: 200, fit: BoxFit.contain)
-                    : const Icon(Icons.fastfood, size: 120, color: AppColors.orange);
-              }
-              try {
-                return Image.memory(
-                  decodeDishImageBase64(base64String),
-                  height: 200,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return dishImage.isNotEmpty
-                        ? Image.asset(dishImage, height: 200, fit: BoxFit.contain)
-                        : const Icon(Icons.fastfood, size: 120, color: AppColors.orange);
-                  },
-                );
-              } catch (e) {
-                return dishImage.isNotEmpty
-                    ? Image.asset(dishImage, height: 200, fit: BoxFit.contain)
-                    : const Icon(Icons.fastfood, size: 120, color: AppColors.orange);
-              }
-            },
-            loading: () => const SizedBox(
-              height: 200,
-              width: 200,
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            ),
-            error: (error, stackTrace) => dishImage.isNotEmpty
-                ? Image.asset(dishImage, height: 200, fit: BoxFit.contain)
-                : const Icon(Icons.fastfood, size: 120, color: AppColors.orange),
-          );
-    }
-
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -145,7 +104,19 @@ class MenuDetailsScreen extends ConsumerWidget {
       child: Column(
         children: [
           const SizedBox(height: 60),
-          imageWidget,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: SizedBox(
+              height: 200,
+              child: DishImageWidget(
+                dishId: dish.id,
+                fallbackAssetPath: dishImage,
+                height: 200,
+                fit: BoxFit.contain,
+                borderRadius: 16,
+              ),
+            ),
+          ),
 
           Padding(
             padding: const EdgeInsets.all(24.0),

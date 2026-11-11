@@ -57,16 +57,55 @@ final dishProvider = Provider<List<DishModel>>((ref) {
 });
 
 final dishImageProvider = FutureProvider.family<String?, int>((ref, dishId) async {
-  final repository = ref.watch(restaurantRepositoryProvider);
-  return repository.getRestaurantDishImageById(dishId);
+  try {
+    final repository = ref.watch(restaurantRepositoryProvider);
+    return await repository.getRestaurantDishImageById(dishId);
+  } catch (_) {
+    return null;
+  }
 });
 
-/// Decodes a dish image from [dishImageProvider], stripping any data-URI prefix.
-/// Throws a [FormatException] if the string is not valid base64.
-Uint8List decodeDishImageBase64(String base64String) {
+/// Safely decodes a dish image from [dishImageProvider], stripping any data-URI prefix
+/// and normalizing whitespace and base64 padding.
+/// Returns null if string is invalid, empty, or does not contain real image bytes.
+Uint8List? decodeDishImageBase64(String? base64String) {
+  if (base64String == null) return null;
   String pureBase64 = base64String.trim();
-  if (pureBase64.contains(',')) {
-    pureBase64 = pureBase64.split(',').last;
+  if (pureBase64.isEmpty || pureBase64.toLowerCase() == 'null' || pureBase64.length < 16) {
+    return null;
   }
-  return base64Decode(pureBase64);
+  if (pureBase64.contains(',')) {
+    pureBase64 = pureBase64.split(',').last.trim();
+  }
+  pureBase64 = pureBase64.replaceAll(RegExp(r'\s+'), '');
+  if (pureBase64.isEmpty) return null;
+
+  try {
+    final mod = pureBase64.length % 4;
+    if (mod > 0) {
+      pureBase64 += '=' * (4 - mod);
+    }
+    final bytes = base64Decode(pureBase64);
+    if (_isValidImageHeader(bytes)) {
+      return bytes;
+    }
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
+
+bool _isValidImageHeader(Uint8List bytes) {
+  if (bytes.length < 8) return false;
+  // PNG: 89 50 4E 47
+  if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) return true;
+  // JPEG: FF D8 FF
+  if (bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF) return true;
+  // GIF: 47 49 46
+  if (bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46) return true;
+  // WEBP: RIFF
+  if (bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46) return true;
+  // BMP: 42 4D
+  if (bytes[0] == 0x42 && bytes[1] == 0x4D) return true;
+  return false;
 }

@@ -53,12 +53,25 @@ class RestaurantRepository {
   Future<String?> getRestaurantDishImageById(int id) async {
     try {
       final res = await _remoteDataSource.getRestaurantDishImageById(id);
-      if (res != null && res['restaurant_dish_image'] != null) {
-        return res['restaurant_dish_image']['image_data'] as String?;
+      if (res != null && res is Map) {
+        if (res['restaurant_dish_image'] != null) {
+          final dishImg = res['restaurant_dish_image'];
+          if (dishImg is Map && dishImg['image_data'] != null) {
+            final data = dishImg['image_data'];
+            return data is String ? data : null;
+          } else if (dishImg is List && dishImg.isNotEmpty && dishImg.first is Map) {
+            final data = dishImg.first['image_data'];
+            return data is String ? data : null;
+          }
+        }
+        if (res['image_data'] != null) {
+          final data = res['image_data'];
+          return data is String ? data : null;
+        }
       }
       return null;
-    } catch (e) {
-      rethrow;
+    } catch (_) {
+      return null;
     }
   }
 

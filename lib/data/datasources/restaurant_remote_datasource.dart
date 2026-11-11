@@ -59,14 +59,18 @@ class RestaurantRemoteDataSource {
   }
 
   Future<dynamic> getRestaurantDishImageById(int id) async {
-    final response = await _apiClient.post(
-      ApiConstants.getRestaurantDishImageById,
-      queryParameters: {'restaurantDishId': id},
-    );
-    if (response.statusCode == 200) {
-      return response.data;
-    } else {
-      throw Exception('Failed to load dish image: ${response.statusCode}');
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.getRestaurantDishImageById,
+        queryParameters: {'restaurantDishId': id},
+      );
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+      return null;
+    } catch (_) {
+      // Gracefully return null if image not found or endpoint fails
+      return null;
     }
   }
 

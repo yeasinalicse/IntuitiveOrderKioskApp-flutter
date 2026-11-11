@@ -13,7 +13,6 @@ import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widg
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/payment_sticky_footer.dart';
 import 'package:intuitiveorderkioskappflutter/features/payment/presentation/widgets/payment_trust_section.dart';
 import 'package:intuitiveorderkioskappflutter/providers/restaurant_data_provider.dart';
-import 'package:intuitiveorderkioskappflutter/utils/order_id_generator.dart';
 
 class PaymentSelectionScreen extends ConsumerWidget {
   const PaymentSelectionScreen({super.key});
@@ -205,48 +204,99 @@ void _startCardPayment(BuildContext context, WidgetRef ref) {
   final restaurantData = ref.read(restaurantAppDataProvider).value;
   final settings = restaurantData?.restaurantSettings;
 
-  if (settings?.dojo_payment_sense == true) {
-    final terminals = restaurantData?.dojo_Card_Payment_Sense_TerminalList ?? [];
-    if (terminals.isEmpty) {
-      AppPopups.showMessage(
-        context,
-        title: 'No Card Terminal',
-        message: 'Please ensure a Dojo card terminal is configured for this restaurant.',
-      );
-      return;
-    }
-
-    // Automatically select the 1st Dojo terminal
-    final terminal = terminals.first;
-    final amount = ref.read(cartProvider).totalPrice;
-    final orderId = ref.read(orderManagementProvider).value?.order?.id ?? OrderIdGenerator.generate();
-    final currency = terminal.currency.isNotEmpty ? terminal.currency : 'GBP';
-    final restaurantOrderPolicyId = ref.read(localStorageProvider).getQuickOrderPolicyId() ?? 0;
-    final apiModel = restaurantData?.restaurantApiList.firstOrNull;
-    final apiUrl = apiModel?.api_url ?? '';
-    final apiKey = apiModel?.api_key ?? '';
-    final payAtCounterConfig = restaurantData?.dojo_Card_Pay_At_Counter_ConfigurationList.firstOrNull;
-    final softwareHouseId = payAtCounterConfig?.software_house_id ?? '';
-    final installerId = payAtCounterConfig?.installer_id ?? '';
-
-    context.push('/dojo-payment', extra: {
-      'terminal': terminal,
-      'amount': amount,
-      'orderId': orderId,
-      'currency': currency,
-      'restaurantOrderPolicyId': restaurantOrderPolicyId,
-      'apiUrl': apiUrl,
-      'apiKey': apiKey,
-      'softwareHouseId': softwareHouseId,
-      'installerId': installerId,
-      'tid': terminal.tid,
-    });
+  if (settings?.dojo_payment_sense != true) {
+    AppPopups.showMessage(
+      context,
+      title: 'Card Payment Unavailable',
+      message: 'No card payment terminal is enabled for this restaurant.',
+    );
     return;
   }
 
-  AppPopups.showMessage(
-    context,
-    title: 'Card Payment Unavailable',
-    message: 'No card payment terminal is enabled for this restaurant.',
-  );
+  final orderResponse = ref.read(orderManagementProvider).value;
+  final order = orderResponse?.order;
+  final orderId = order?.id?.trim();
+  final amount = orderResponse?.workingBill?.grand_total ?? order?.grand_total;
+
+  if (orderId == null || orderId.isEmpty) {
+    AppPopups.showMessage(
+      context,
+      title: 'Order Not Ready',
+      message: 'Please wait for the order to be saved before starting payment.',
+    );
+    return;
+  }
+
+  if (amount == null || !amount.isFinite || amount <= 0) {
+    AppPopups.showMessage(
+      context,
+      title: 'Invalid Payment Amount',
+      message: 'The saved order does not have a valid amount to charge.',
+    );
+    return;
+  }
+
+  final terminals = restaurantData?.dojo_Card_Payment_Sense_TerminalList ?? [];
+  if (terminals.isEmpty) {
+    AppPopups.showMessage(
+      context,
+      title: 'No Card Terminal',
+      message: 'Please ensure a Dojo card terminal is configured for this restaurant.',
+    );
+    return;
+  }
+
+  // Automatically select the first configured Dojo terminal.
+  final terminal = terminals.first;
+  final apiList = restaurantData?.restaurantApiList ?? [];
+  final hostApi = apiList.where((a) => a.api_name == 'DojoRestPayAtCounterHostURL').firstOrNull;
+  final pathApi = apiList.where((a) => a.api_name == 'DojoRestPayAtCounterURL').firstOrNull;
+
+  String apiUrl = '';
+  String apiKey = '';
+
+  if (hostApi != null || pathApi != null) {
+    final host = hostApi?.api_url?.trim() ?? '';
+    final path = pathApi?.api_url?.trim() ?? '';
+    apiUrl = '$host$path';
+    apiKey = pathApi?.api_key?.trim() ?? hostApi?.api_key?.trim() ?? '';
+  } else {
+    final apiModel = apiList.firstOrNull;
+    apiUrl = apiModel?.api_url?.trim() ?? '';
+    apiKey = apiModel?.api_key?.trim() ?? '';
+  }
+
+  final payAtCounterConfig = restaurantData?.dojo_Card_Pay_At_Counter_ConfigurationList.firstOrNull;
+  final softwareHouseId = payAtCounterConfig?.software_house_id.trim() ?? '';
+  final installerId = payAtCounterConfig?.installer_id.trim() ?? '';
+  final tid = terminal.tid.trim();
+
+  /*if (tid.isEmpty ||
+      apiUrl.isEmpty ||
+      apiKey.isEmpty ||
+      softwareHouseId.isEmpty ||
+      installerId.isEmpty) {
+    AppPopups.showMessage(
+      context,
+      title: 'Card Payment Not Configured',
+      message:
+          'Please complete the Dojo terminal and Pay at Counter configuration.',
+    );
+    return;
+  }*/
+
+  context.push('/dojo-payment', extra: {
+    'terminal': terminal,
+    'amount': amount,
+    'orderId': orderId,
+    'currency': terminal.currency.isNotEmpty ? terminal.currency : 'GBP',
+    'restaurantOrderPolicyId': order?.restaurant_order_policy_id ??
+            ref.read(localStorageProvider).getQuickOrderPolicyId() ??
+            0,
+    'apiUrl': apiUrl,
+    'apiKey': apiKey,
+    'softwareHouseId': softwareHouseId,
+    'installerId': installerId,
+    'tid': tid,
+  });
 }

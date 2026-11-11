@@ -86,7 +86,10 @@ class _DojoPaymentScreenState extends ConsumerState<DojoPaymentScreen> {
     if (state.isProcessing) {
       if (state.requestId.isEmpty) {
         currentStep = 0;
-        statusMessage = 'Connecting to terminal...';
+        statusMessage = state.notifications.isNotEmpty ? state.notifications.last : 'Connecting to terminal...';
+      } else if (state.notifications.isNotEmpty) {
+        currentStep = 2;
+        statusMessage = state.notifications.last;
       } else if (state.transactionResult.isNotEmpty) {
         currentStep = 2;
         statusMessage = 'Processing payment (${state.transactionResult})...';
