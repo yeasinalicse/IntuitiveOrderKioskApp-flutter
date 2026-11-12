@@ -333,6 +333,15 @@ class _BottomCartBarState extends ConsumerState<BottomCartBar> {
                   child: InkWell(
                     onTap: () {
                       ref.read(orderManagementProvider.notifier).voidDish(item);
+                      final routerState = GoRouterState.of(context);
+                      final isCurrentlyOnDetails = routerState.matchedLocation == '/details';
+                      if (isCurrentlyOnDetails) {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go('/menu');
+                        }
+                      }
                     },
                     child: const Center(
                       child: Text('Remove', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.primaryOrange)),

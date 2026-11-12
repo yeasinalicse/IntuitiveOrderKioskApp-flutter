@@ -38,21 +38,20 @@ class MenuDetailsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     ref.listen(orderManagementProvider, (previous, next) {
-      final prevResponse = previous?.value;
-      final nextResponse = next.value;
+      next.whenData((nextResponse) {
+        if (nextResponse == null) {
+          onBack();
+          return;
+        }
 
-      if (prevResponse != null && nextResponse != null) {
-        final wasPresent = prevResponse.orderDish.any(
-          (d) => d.restaurant_dish_id == dish.id || d.id == dishId,
-        );
         final isPresent = nextResponse.orderDish.any(
           (d) => d.restaurant_dish_id == dish.id || d.id == dishId,
         );
 
-        if ((wasPresent && !isPresent) || nextResponse.orderDish.length < prevResponse.orderDish.length) {
+        if (!isPresent) {
           onBack();
         }
-      }
+      });
     });
 
     return Scaffold(

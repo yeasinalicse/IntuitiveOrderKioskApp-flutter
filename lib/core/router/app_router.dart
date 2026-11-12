@@ -83,7 +83,13 @@ class AppRouter {
                 dishName: extras['productName'] as String,
                 dishPrice: extras['productPrice'] as String,
                 dishImage: extras['productImage'] as String,
-                onBack: () => context.pop(),
+                onBack: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/menu');
+                  }
+                },
               );
             },
           ),

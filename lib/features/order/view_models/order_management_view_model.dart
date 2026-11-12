@@ -679,7 +679,7 @@ class OrderManagementNotifier extends StateNotifier<AsyncValue<OrderResponseMode
     } else if (orderResponse.orderDish.isNotEmpty) {
       return orderResponse.orderDish.cast<OrderDishModel?>().lastWhere(
         (d) => d != null && (d.restaurant_dish_id == dish.id || d.id == dishId),
-        orElse: () => orderResponse.selectedDish ?? orderResponse.orderDish.last,
+        orElse: () => null,
       );
     }
     return null;
